@@ -36,7 +36,7 @@ func (r *MarkdownRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 	reg.Register(extast.KindTaskCheckBox, r.renderTaskCheckBox)
 
 	// // inlines
-	// reg.Register(ast.KindAutoLink, r.renderAutoLink)
+	reg.Register(ast.KindAutoLink, r.renderAutoLink)
 	// reg.Register(ast.KindCodeSpan, r.renderCodeSpan)
 	reg.Register(ast.KindEmphasis, r.renderEmphasis)
 	// reg.Register(ast.KindImage, r.renderImage)
@@ -89,19 +89,14 @@ func (r *MarkdownRenderer) renderText(
 		value := n.Text(source)
 		w.WriteString(string(value))
 
-		sibling := node.NextSibling()
 		if n.SoftLineBreak() {
-			if sibling != nil && sibling.Kind() == ast.KindText {
-				if siblingText := sibling.(*ast.Text).Text(source); len(siblingText) != 0 {
-					pp := n.Parent().Parent()
-					switch pp := pp.(type) {
-					case *ast.ListItem:
-						w.WriteString("\n")
-						w.WriteString(strings.Repeat(" ", pp.Offset))
-					default:
-						w.WriteString("\n")
-					}
-				}
+			pp := n.Parent().Parent()
+			switch pp := pp.(type) {
+			case *ast.ListItem: // List - ListItem - Text(SoftLineBreak)
+				w.WriteString("\n")
+				w.WriteString(strings.Repeat(" ", pp.Offset))
+			default:
+				w.WriteString("\n")
 			}
 		}
 	}
@@ -201,6 +196,15 @@ func (r *MarkdownRenderer) renderLink(
 		// NOTE As of goldmark v1.7.1, ast.Link.Title is not set by default markdown parser, so that n.Text(source) is used here.
 		// n.Text(source) retrieves text from n's child node (ast.Text) in advance to node-walking operation.
 		w.WriteString(fmt.Sprintf("[%s](%s)", n.Text(source), n.Destination))
+	}
+	return ast.WalkContinue, nil
+}
+
+func (r *MarkdownRenderer) renderAutoLink(
+	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	n := node.(*ast.AutoLink)
+	if entering {
+		w.WriteString(fmt.Sprint(string(n.URL(source))))
 	}
 	return ast.WalkContinue, nil
 }

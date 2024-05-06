@@ -41,8 +41,15 @@ another paragraph without any blank lines in between.
 this is **inline emphasis** in a paragraph.
 
 - [link](destination/to/some/place)
+- [link](destination/to/some/place)
+
+1. [link](destination/to/some/place)
+1. [link](destination/to/some/place)
 
 [link](destination/to/some/place2)
+[link](https://www.hirotoni.com)
+
+autolink: https://www.hirotoni.com
 
 ##### heading 5
 
