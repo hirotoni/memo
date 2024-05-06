@@ -17,4 +17,5 @@ func main() {
 	app := NewApp()
 	app.Initialize()
 	app.OpenTodaysMemo()
+	app.WeeklyReport()
 }

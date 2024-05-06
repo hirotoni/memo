@@ -7,29 +7,35 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/hirotoni/memo/markdown"
+	"github.com/yuin/goldmark/ast"
 )
 
 const (
 	ENV_DEFAULT_BASE_DIR = "MEMOAPP_BASE_PATH"
 
-	CONFIG_FOLDER_NAME    = ".config/memoapp/"
-	DAILYMEMO_FOLDER_NAME = "dailymemo/"
+	FOLDER_NAME_CONFIG    = ".config/memoapp/"
+	FOLDER_NAME_DAILYMEMO = "dailymemo/"
 
-	TEMPLATE_FILE_NAME = "template.md"
-	LAYOUT             = "2006-01-02-Mon"
+	FILE_NAME_TEMPLATE      = "template.md"
+	FILE_NAME_WEEKLY_REPORT = "weekly_report.md"
 
-	TODOS_HEADING     = "todos"
-	WANTTODOS_HEADING = "wanttodos"
+	LAYOUT   = "2006-01-02-Mon"
+	TIMEZONE = "Asia/Tokyo"
+
+	HEADING_NAME_TODOS     = "todos"
+	HEADING_NAME_WANTTODOS = "wanttodos"
+	HEADING_NAME_MEMOS     = "memos"
 )
 
 var (
 	HOME_DIR         = os.Getenv("HOME")
-	DEFAULT_BASE_DIR = filepath.Join(HOME_DIR, CONFIG_FOLDER_NAME)            // .config/memoapp/
-	DAILYMEMO_DIR    = filepath.Join(DEFAULT_BASE_DIR, DAILYMEMO_FOLDER_NAME) // .config/memoapp/dailymemo/
-	TEMPLATE_FILE    = filepath.Join(DAILYMEMO_DIR, TEMPLATE_FILE_NAME)       // .config/memoapp/dailymemo/template.md
+	DEFAULT_BASE_DIR = filepath.Join(HOME_DIR, FOLDER_NAME_CONFIG)            // .config/memoapp/
+	DAILYMEMO_DIR    = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_DAILYMEMO) // .config/memoapp/dailymemo/
+	TEMPLATE_FILE    = filepath.Join(DAILYMEMO_DIR, FILE_NAME_TEMPLATE)       // .config/memoapp/dailymemo/template.md
 )
 
 type AppConfig struct {
@@ -53,8 +59,8 @@ func NewAppConfig() AppConfig {
 		}
 
 		ac.BaseDir = v
-		ac.DailymemoDir = filepath.Join(v, DAILYMEMO_FOLDER_NAME)
-		ac.TemplateFile = filepath.Join(ac.DailymemoDir, TEMPLATE_FILE_NAME)
+		ac.DailymemoDir = filepath.Join(v, FOLDER_NAME_DAILYMEMO)
+		ac.TemplateFile = filepath.Join(ac.DailymemoDir, FILE_NAME_TEMPLATE)
 	}
 
 	return ac
@@ -90,7 +96,7 @@ func (c *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(fmt.Sprintf("# todays memo\n\n## %s\n\n## %s", TODOS_HEADING, WANTTODOS_HEADING))
+		f.WriteString(fmt.Sprintf("# todays memo\n\n## %s\n\n## %s", HEADING_NAME_TODOS, HEADING_NAME_WANTTODOS))
 		log.Println("memo template file initialized.")
 	}
 }
@@ -114,8 +120,8 @@ func (c *App) OpenTodaysMemo() {
 		}
 
 		// inherit todos from previous memo
-		b = c.InheritHeading(f, b, TODOS_HEADING)
-		b = c.InheritHeading(f, b, WANTTODOS_HEADING)
+		b = c.InheritHeading(f, b, HEADING_NAME_TODOS)
+		b = c.InheritHeading(f, b, HEADING_NAME_WANTTODOS)
 		b = c.AppendTips(b)
 		f.Write(b)
 	}
@@ -162,4 +168,67 @@ func (c *App) AppendTips(tb []byte) []byte {
 	// - life sayings, someone's sayings
 
 	return tb
+}
+
+func (c *App) WeeklyReport() {
+	e, err := os.ReadDir(c.config.DailymemoDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	wantfiles := []string{}
+	for _, file := range e {
+		format := `\d{4}-\d{2}-\d{2}-\S{3}\.md`
+		reg := regexp.MustCompile(format)
+		if reg.MatchString(file.Name()) {
+			wantfiles = append(wantfiles, filepath.Join(c.config.DailymemoDir, file.Name()))
+		}
+	}
+
+	f, err := os.Create(filepath.Join(c.config.DailymemoDir, FILE_NAME_WEEKLY_REPORT))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	var curWeekNum int
+	for _, fpath := range wantfiles {
+
+		tz, err := time.LoadLocation(TIMEZONE)
+		if err != nil {
+			log.Fatal(err)
+		}
+		year, week := time.Now().In(tz).ISOWeek()
+		if curWeekNum != week {
+			f.WriteString("# " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n")
+			curWeekNum = week
+		}
+
+		f.WriteString("## " + filepath.Base(fpath) + "\n\n")
+
+		b, err := os.ReadFile(fpath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		gmw := markdown.NewGoldmarkWrapper()
+		doc := gmw.Parse(b)
+		hangingNodes := gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS, 2)
+
+		for _, node := range hangingNodes {
+			if node.Kind() == ast.KindHeading {
+
+				relpath, err := filepath.Rel(c.config.DailymemoDir, fpath)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				format := "1. [%s](%s#%s)\n"
+				title := string(node.Text(b))
+				s := fmt.Sprintf(format, title, relpath, title)
+				f.WriteString(s)
+
+			}
+		}
+		f.WriteString("\n")
+	}
 }
