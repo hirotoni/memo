@@ -94,9 +94,12 @@ func (r *MarkdownRenderer) renderText(
 			if sibling != nil && sibling.Kind() == ast.KindText {
 				if siblingText := sibling.(*ast.Text).Text(source); len(siblingText) != 0 {
 					pp := n.Parent().Parent()
-					if li, ok := pp.(*ast.ListItem); ok {
+					switch pp := pp.(type) {
+					case *ast.ListItem:
 						w.WriteString("\n")
-						w.WriteString(strings.Repeat(" ", li.Offset))
+						w.WriteString(strings.Repeat(" ", pp.Offset))
+					default:
+						w.WriteString("\n")
 					}
 				}
 			}

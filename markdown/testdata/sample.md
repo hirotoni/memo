@@ -36,7 +36,7 @@
 this is a paragraph.
 
 this is a paragraph followed by
-another line without breaks.
+another paragraph without any blank lines in between.
 
 this is **inline emphasis** in a paragraph.
 
