@@ -1,6 +1,6 @@
 # heading 1
 
-this is a paragraph
+## unordered list
 
 - list 1
   - indented 1
@@ -13,7 +13,7 @@ this is a paragraph
   another following list
 - list 5
 
-## heading 2
+## checkbox
 
 - [ ] checkbox 1
 - [ ] checkbox 2
@@ -22,7 +22,7 @@ this is a paragraph
 
 # heading 1-2
 
-### heading 3
+### ordered list
 
 1. ordered list 1
 2. ordered list 2
@@ -31,9 +31,18 @@ this is a paragraph
    1. indented ordered list
    1. indented ordered list
 
-#### heading 4
+#### inline nodes
+
+this is a paragraph.
+
+this is a paragraph followed by
+another line without breaks.
 
 this is **inline emphasis** in a paragraph.
+
+- [link](destination/to/some/place)
+
+[link](destination/to/some/place2)
 
 ##### heading 5
 

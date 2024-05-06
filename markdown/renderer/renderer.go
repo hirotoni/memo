@@ -40,7 +40,7 @@ func (r *MarkdownRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 	// reg.Register(ast.KindCodeSpan, r.renderCodeSpan)
 	reg.Register(ast.KindEmphasis, r.renderEmphasis)
 	// reg.Register(ast.KindImage, r.renderImage)
-	// reg.Register(ast.KindLink, r.renderLink)
+	reg.Register(ast.KindLink, r.renderLink)
 	// reg.Register(ast.KindRawHTML, r.renderRawHTML)
 	reg.Register(ast.KindText, r.renderText)
 	// reg.Register(ast.KindString, r.renderString)
@@ -81,6 +81,11 @@ func (r *MarkdownRenderer) renderText(
 	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.Text)
 	if entering {
+		if n.Parent().Kind() == ast.KindLink { // TODO needs nil check?
+			// r.renderLink() renders text in advance. no rendering needed here.
+			return ast.WalkContinue, nil
+		}
+
 		value := n.Text(source)
 		w.WriteString(string(value))
 
@@ -182,6 +187,17 @@ func (r *MarkdownRenderer) renderTaskCheckBox(
 		} else {
 			_, _ = w.WriteString("[ ] ")
 		}
+	}
+	return ast.WalkContinue, nil
+}
+
+func (r *MarkdownRenderer) renderLink(
+	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	n := node.(*ast.Link)
+	if entering {
+		// NOTE As of goldmark v1.7.1, ast.Link.Title is not set by default markdown parser, so that n.Text(source) is used here.
+		// n.Text(source) retrieves text from n's child node (ast.Text) in advance to node-walking operation.
+		w.WriteString(fmt.Sprintf("[%s](%s)", n.Text(source), n.Destination))
 	}
 	return ast.WalkContinue, nil
 }
