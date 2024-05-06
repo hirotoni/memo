@@ -118,7 +118,7 @@ loop:
 	return resultNodes
 }
 
-// InsertAfter inserts insertees to self node at taregt position, and returns updated byte array of self node as the result of the insertion
+// InsertAfter inserts insertees to self node at target position, and returns updated byte array of self node as the result of the insertion
 func (gmw *GoldmarkWrapper) InsertAfter(self ast.Node, target ast.Node, insertees []ast.Node, selfSource, nodeSource []byte) []byte {
 	// insert from tail nodes
 	length := len(insertees)
