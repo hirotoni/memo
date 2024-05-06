@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ENV_DEFAULT_BASE_PATH = "MEMOCLI_BASE_PATH"
+	ENV_DEFAULT_BASE_DIR = "MEMOAPP_BASE_PATH"
 
 	CONFIG_FOLDER_NAME    = ".config/memoapp/"
 	DAILYMEMO_FOLDER_NAME = "dailymemo/"
@@ -45,7 +45,13 @@ func NewAppConfig() AppConfig {
 		TemplateFile: TEMPLATE_FILE,
 	}
 
-	if v, found := os.LookupEnv("MEMOAPP_BASE_PATH"); found {
+	v, found := os.LookupEnv(ENV_DEFAULT_BASE_DIR)
+	if found {
+		if _, err := os.Stat(v); errors.Is(err, os.ErrNotExist) {
+			log.Printf("the directory specified by $%s(%s) does not exist. Using default value(%s).", ENV_DEFAULT_BASE_DIR, v, ac.BaseDir)
+			return ac
+		}
+
 		ac.BaseDir = v
 		ac.DailymemoDir = filepath.Join(v, DAILYMEMO_FOLDER_NAME)
 		ac.TemplateFile = filepath.Join(ac.DailymemoDir, TEMPLATE_FILE_NAME)
