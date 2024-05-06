@@ -26,6 +26,7 @@ const (
 	LAYOUT   = "2006-01-02-Mon"
 	TIMEZONE = "Asia/Tokyo"
 
+	HEADING_NAME_TITLE     = "todays memo"
 	HEADING_NAME_TODOS     = "todos"
 	HEADING_NAME_WANTTODOS = "wanttodos"
 	HEADING_NAME_MEMOS     = "memos"
@@ -96,7 +97,7 @@ func (c *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString("# todays memo\n\n")
+		f.WriteString(fmt.Sprintf("# %s\n\n", HEADING_NAME_TITLE))
 		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_TODOS))
 		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_WANTTODOS))
 		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_MEMOS))
@@ -122,6 +123,17 @@ func (c *App) OpenTodaysMemo() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		gmw := markdown.NewGoldmarkWrapper()
+		doc := gmw.Parse(b)
+		targetHeader := gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE, 1)
+		s := targetHeader.Lines().At(0)
+
+		buf := []byte{}
+		buf = append(buf, b[:s.Stop]...)
+		buf = append(buf, []byte("\n\n"+today)...)
+		buf = append(buf, b[s.Stop:]...)
+		b = buf
 
 		// inherit todos from previous memo
 		b = c.InheritHeading(f, b, HEADING_NAME_TODOS)
