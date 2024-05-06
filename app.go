@@ -96,7 +96,11 @@ func (c *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(fmt.Sprintf("# todays memo\n\n## %s\n\n## %s", HEADING_NAME_TODOS, HEADING_NAME_WANTTODOS))
+		f.WriteString("# todays memo\n\n")
+		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_TODOS))
+		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_WANTTODOS))
+		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_MEMOS))
+
 		log.Println("memo template file initialized.")
 	}
 }
