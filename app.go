@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hirotoni/memo/markdown"
@@ -242,8 +243,10 @@ func (c *App) WeeklyReport() {
 
 				format := "%d. [%s](%s#%s)\n"
 				title := string(node.Text(b))
+				tag := strings.ReplaceAll(title, " ", "-")
+				tag = strings.ReplaceAll(tag, "　", "-")
 				order++
-				s := fmt.Sprintf(format, order, title, relpath, title)
+				s := fmt.Sprintf(format, order, title, relpath, tag)
 				f.WriteString(s)
 			}
 		}
