@@ -26,7 +26,7 @@ const (
 	LAYOUT   = "2006-01-02-Mon"
 	TIMEZONE = "Asia/Tokyo"
 
-	HEADING_NAME_TITLE     = "todays memo"
+	HEADING_NAME_TITLE     = "daily memo"
 	HEADING_NAME_TODOS     = "todos"
 	HEADING_NAME_WANTTODOS = "wanttodos"
 	HEADING_NAME_MEMOS     = "memos"
@@ -207,6 +207,8 @@ func (c *App) WeeklyReport() {
 	}
 	defer f.Close()
 
+	f.WriteString("# Weekly Report\n\n")
+
 	var curWeekNum int
 	for _, fpath := range wantfiles {
 
@@ -216,11 +218,11 @@ func (c *App) WeeklyReport() {
 		}
 		year, week := time.Now().In(tz).ISOWeek()
 		if curWeekNum != week {
-			f.WriteString("# " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n")
+			f.WriteString("## " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n")
 			curWeekNum = week
 		}
 
-		f.WriteString("## " + filepath.Base(fpath) + "\n\n")
+		f.WriteString("### " + filepath.Base(fpath) + "\n\n")
 
 		b, err := os.ReadFile(fpath)
 		if err != nil {
@@ -230,21 +232,24 @@ func (c *App) WeeklyReport() {
 		doc := gmw.Parse(b)
 		hangingNodes := gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS, 2)
 
+		var order = 0
 		for _, node := range hangingNodes {
 			if node.Kind() == ast.KindHeading {
-
 				relpath, err := filepath.Rel(c.config.DailymemoDir, fpath)
 				if err != nil {
 					log.Fatal(err)
 				}
 
-				format := "1. [%s](%s#%s)\n"
+				format := "%d. [%s](%s#%s)\n"
 				title := string(node.Text(b))
-				s := fmt.Sprintf(format, title, relpath, title)
+				order++
+				s := fmt.Sprintf(format, order, title, relpath, title)
 				f.WriteString(s)
-
 			}
 		}
-		f.WriteString("\n")
+
+		if order > 0 {
+			f.WriteString("\n")
+		}
 	}
 }
