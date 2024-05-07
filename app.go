@@ -241,16 +241,21 @@ func (c *App) WeeklyReport() {
 
 		var order = 0
 		for _, node := range hangingNodes {
-			if node.Kind() == ast.KindHeading {
+			if n, ok := node.(*ast.Heading); ok {
 				relpath, err := filepath.Rel(c.config.DailymemoDir, fpath)
 				if err != nil {
 					log.Fatal(err)
 				}
 
 				format := "%d. [%s](%s#%s)\n"
-				title := string(node.Text(b))
-				tag := strings.ReplaceAll(title, " ", "-")
-				tag = strings.ReplaceAll(tag, "　", "-")
+				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
+				tag := strings.ReplaceAll(string(node.Text(b)), " ", "-")
+				tag = strings.ReplaceAll(tag, "#", "")
+				fullwidthchars := strings.Split("　！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？【】『』《》〔〕［］‹›«»〘〙〚〛", "")
+				for _, c := range fullwidthchars {
+					tag = strings.ReplaceAll(tag, c, "")
+				}
+
 				order++
 				s := fmt.Sprintf(format, order, title, relpath, tag)
 				f.WriteString(s)
