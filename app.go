@@ -235,6 +235,7 @@ func (c *App) WeeklyReport() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		gmw := markdown.NewGoldmarkWrapper()
 		doc := gmw.Parse(b)
 		hangingNodes := gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS, 2)
@@ -247,7 +248,7 @@ func (c *App) WeeklyReport() {
 					log.Fatal(err)
 				}
 
-				format := "%d. [%s](%s#%s)\n"
+				var format = "%d. [%s](%s#%s)\n"
 				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
 				tag := strings.ReplaceAll(string(node.Text(b)), " ", "-")
 				tag = strings.ReplaceAll(tag, "#", "")
