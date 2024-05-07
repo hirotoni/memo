@@ -213,11 +213,17 @@ func (c *App) WeeklyReport() {
 	var curWeekNum int
 	for _, fpath := range wantfiles {
 
-		tz, err := time.LoadLocation(TIMEZONE)
+		datestring, found := strings.CutSuffix(filepath.Base(fpath), ".md")
+		if !found {
+			log.Fatal("failed to cut suffix.")
+		}
+
+		date, err := time.Parse(LAYOUT, datestring)
 		if err != nil {
 			log.Fatal(err)
 		}
-		year, week := time.Now().In(tz).ISOWeek()
+
+		year, week := date.ISOWeek()
 		if curWeekNum != week {
 			f.WriteString("## " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n")
 			curWeekNum = week
