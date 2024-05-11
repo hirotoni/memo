@@ -20,9 +20,11 @@ const (
 
 	FOLDER_NAME_CONFIG    = ".config/memoapp/"
 	FOLDER_NAME_DAILYMEMO = "dailymemo/"
+	FOLDER_NAME_TIPS      = "tips"
 
-	FILE_NAME_TEMPLATE      = "template.md"
-	FILE_NAME_WEEKLY_REPORT = "weekly_report.md"
+	FILE_NAME_DAILYMEMO_TEMPLATE = "template.md"
+	FILE_NAME_TIPS_TEMPLATE      = "template.md"
+	FILE_NAME_WEEKLY_REPORT      = "weekly_report.md"
 
 	LAYOUT   = "2006-01-02-Mon"
 	TIMEZONE = "Asia/Tokyo"
@@ -32,27 +34,34 @@ const (
 	HEADING_NAME_WANTTODOS = "wanttodos"
 	HEADING_NAME_MEMOS     = "memos"
 
-	DAYS_TO_SEEK = 10 // number of dates to seek back when inheriting todos from previous days
+	// number of dates to seek back when inheriting todos from previous days
+	DAYS_TO_SEEK = 10
 )
 
 var (
-	HOME_DIR         = os.Getenv("HOME")
-	DEFAULT_BASE_DIR = filepath.Join(HOME_DIR, FOLDER_NAME_CONFIG)            // .config/memoapp/
-	DAILYMEMO_DIR    = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_DAILYMEMO) // .config/memoapp/dailymemo/
-	TEMPLATE_FILE    = filepath.Join(DAILYMEMO_DIR, FILE_NAME_TEMPLATE)       // .config/memoapp/dailymemo/template.md
+	HOME_DIR                = os.Getenv("HOME")
+	DEFAULT_BASE_DIR        = filepath.Join(HOME_DIR, FOLDER_NAME_CONFIG)                                          // .config/memoapp/
+	DAILYMEMO_DIR           = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_DAILYMEMO)                               // .config/memoapp/dailymemo/
+	DAILYMEMO_TEMPLATE_FILE = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_DAILYMEMO, FILE_NAME_DAILYMEMO_TEMPLATE) // .config/memoapp/dailymemo/template.md
+	TIPS_DIR                = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_TIPS)                                    // .config/memoapp/tips/
+	TIPS_TEMPLATE_FILE      = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_TIPS, FILE_NAME_TIPS_TEMPLATE)           // .config/memoapp/tips/template.md
 )
 
 type AppConfig struct {
-	BaseDir      string
-	DailymemoDir string
-	TemplateFile string
+	BaseDir               string
+	DailymemoDir          string
+	DailymemoTemplateFile string
+	TipsDir               string
+	TipsTemplateFile      string
 }
 
 func NewAppConfig() AppConfig {
 	ac := AppConfig{
-		BaseDir:      DEFAULT_BASE_DIR,
-		DailymemoDir: DAILYMEMO_DIR,
-		TemplateFile: TEMPLATE_FILE,
+		BaseDir:               DEFAULT_BASE_DIR,
+		DailymemoDir:          DAILYMEMO_DIR,
+		DailymemoTemplateFile: DAILYMEMO_TEMPLATE_FILE,
+		TipsDir:               TIPS_DIR,
+		TipsTemplateFile:      TIPS_TEMPLATE_FILE,
 	}
 
 	v, found := os.LookupEnv(ENV_NAME_DEFAULT_BASE_DIR)
@@ -63,8 +72,10 @@ func NewAppConfig() AppConfig {
 		}
 
 		ac.BaseDir = v
-		ac.DailymemoDir = filepath.Join(v, FOLDER_NAME_DAILYMEMO)
-		ac.TemplateFile = filepath.Join(ac.DailymemoDir, FILE_NAME_TEMPLATE)
+		ac.DailymemoDir = filepath.Join(ac.BaseDir, FOLDER_NAME_DAILYMEMO)
+		ac.DailymemoTemplateFile = filepath.Join(ac.BaseDir, FOLDER_NAME_DAILYMEMO, FILE_NAME_DAILYMEMO_TEMPLATE)
+		ac.TipsDir = filepath.Join(ac.BaseDir, FOLDER_NAME_TIPS)
+		ac.TipsTemplateFile = filepath.Join(ac.BaseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_TEMPLATE)
 	}
 
 	return ac
@@ -82,19 +93,18 @@ func NewApp() App {
 
 // Initialize initializes dirs and files
 func (c *App) Initialize() {
-	// base dir
+	// dailymemo dir
 	_, err := os.Stat(c.config.DailymemoDir)
 	if errors.Is(err, os.ErrNotExist) {
 		if err := os.MkdirAll(c.config.DailymemoDir, 0750); err != nil {
 			log.Fatal(err)
 		}
-		log.Println("memo base directory initialized.")
+		log.Printf("memo directory initialized: %s", c.config.BaseDir)
 	}
-
-	// template file
-	_, err = os.Stat(c.config.TemplateFile)
+	// dailymemo template file
+	_, err = os.Stat(c.config.DailymemoTemplateFile)
 	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(c.config.TemplateFile)
+		f, err := os.Create(c.config.DailymemoTemplateFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -105,7 +115,30 @@ func (c *App) Initialize() {
 		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_WANTTODOS))
 		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_MEMOS))
 
-		log.Println("memo template file initialized.")
+		log.Printf("dailymemo template file initialized: %s", c.config.DailymemoTemplateFile)
+	}
+
+	// tips dir
+	_, err = os.Stat(c.config.TipsDir)
+	if errors.Is(err, os.ErrNotExist) {
+		if err := os.MkdirAll(c.config.TipsDir, 0750); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("tips directory initialized: %s", c.config.TipsDir)
+	}
+	// tips template file
+	_, err = os.Stat(c.config.TipsTemplateFile)
+	if errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(c.config.TipsTemplateFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		f.WriteString(fmt.Sprintf("# %s\n\n", "template (<- FILENAME HERE)"))
+		f.WriteString(fmt.Sprintf("## %s\n\n", "how to eat sushi (<- YOUR TIPS HERE)"))
+
+		log.Printf("tips template file initialized: %s", c.config.TipsTemplateFile)
 	}
 }
 
@@ -122,7 +155,7 @@ func (c *App) OpenTodaysMemo() {
 		}
 		defer f.Close()
 
-		b, err := os.ReadFile(c.config.TemplateFile)
+		b, err := os.ReadFile(c.config.DailymemoTemplateFile)
 		if err != nil {
 			log.Fatal(err)
 		}
