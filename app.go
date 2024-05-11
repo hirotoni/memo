@@ -31,6 +31,8 @@ const (
 	HEADING_NAME_TODOS     = "todos"
 	HEADING_NAME_WANTTODOS = "wanttodos"
 	HEADING_NAME_MEMOS     = "memos"
+
+	DAYS_TO_SEEK = 10 // number of dates to seek back when inheriting todos from previous days
 )
 
 var (
@@ -137,8 +139,8 @@ func (c *App) OpenTodaysMemo() {
 		b = buf
 
 		// inherit todos from previous memo
-		b = c.InheritHeading(f, b, HEADING_NAME_TODOS)
-		b = c.InheritHeading(f, b, HEADING_NAME_WANTTODOS)
+		b = c.InheritHeading(b, HEADING_NAME_TODOS)
+		b = c.InheritHeading(b, HEADING_NAME_WANTTODOS)
 		b = c.AppendTips(b)
 		f.Write(b)
 	}
@@ -151,25 +153,37 @@ func (c *App) OpenTodaysMemo() {
 }
 
 // InheritHeading inherits todos from previous day's memo
-func (c *App) InheritHeading(w *os.File, tb []byte, text string) []byte {
+func (c *App) InheritHeading(tb []byte, text string) []byte {
 	gmw := markdown.NewGoldmarkWrapper()
 
 	// today
 	tDoc := gmw.Parse(tb)
 	targetHeader := gmw.GetHeadingNode(tDoc, tb, text, 2)
 
-	// previous day
-	// TODO seek for another few days when yesterday memo does not exist
-	// TODO handle when previous memos have not been created
-	yesterday := time.Now().Add(time.Hour * -24).Format(LAYOUT)
-	yb, err := os.ReadFile(filepath.Join(c.config.DailymemoDir, yesterday+".md"))
+	// previous days
+	tz, err := time.LoadLocation(TIMEZONE)
 	if err != nil {
 		log.Fatal(err)
 	}
-	yDoc := gmw.Parse(yb)
+	today := time.Now().In(tz)
+	for i := range make([]int, DAYS_TO_SEEK) {
+		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
+		pb, err := os.ReadFile(filepath.Join(c.config.DailymemoDir, previousDay+".md"))
+		if errors.Is(err, os.ErrNotExist) {
+			if i+1 == DAYS_TO_SEEK {
+				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
+			}
+			continue
+		} else if err != nil {
+			log.Fatal(err)
+		}
 
-	nodesToInsert := gmw.FindHeadingAndGetHangingNodes(yDoc, yb, text, 2)
-	tb = gmw.InsertAfter(tDoc, targetHeader, nodesToInsert, tb, yb)
+		pDoc := gmw.Parse(pb)
+
+		nodesToInsert := gmw.FindHeadingAndGetHangingNodes(pDoc, pb, text, 2)
+		tb = gmw.InsertAfter(tDoc, targetHeader, nodesToInsert, tb, pb)
+		break
+	}
 
 	return tb
 }
