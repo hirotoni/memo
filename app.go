@@ -161,20 +161,16 @@ func (c *App) OpenTodaysMemo() {
 		}
 
 		gmw := markdown.NewGoldmarkWrapper()
-		doc := gmw.Parse(b)
-		targetHeader := gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE, 1)
-		s := targetHeader.Lines().At(0)
-
-		buf := []byte{}
-		buf = append(buf, b[:s.Stop]...)
-		buf = append(buf, []byte("\n\n"+today)...)
-		buf = append(buf, b[s.Stop:]...)
-		b = buf
 
 		// inherit todos from previous memo
 		b = c.InheritHeading(b, HEADING_NAME_TODOS)
 		b = c.InheritHeading(b, HEADING_NAME_WANTTODOS)
 		b = c.AppendTips(b)
+
+		doc := gmw.Parse(b)
+		targetHeader := gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE, 1)
+		b = gmw.InsertTextAfter(doc, targetHeader, today, b)
+
 		f.Write(b)
 	}
 
@@ -223,13 +219,58 @@ func (c *App) InheritHeading(tb []byte, text string) []byte {
 
 // AppendTips appends tips
 func (c *App) AppendTips(tb []byte) []byte {
-	// not yet implemented
+	// not yet fully implemented
 
 	// tips are the things that you want to remember periodically such as
 	// - ER diagrams, component diagrams, constants of application you are in charge
 	// - product management, development process knowledge
 	// - bookmarks, web links
 	// - life sayings, someone's sayings
+
+	gmw := markdown.NewGoldmarkWrapper()
+
+	var poolTipsToShow []string
+	// var poolTipsAlreadyShown []string
+	var targetTipFiles []string
+	var fn = func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() || path == c.config.TipsTemplateFile {
+			return nil
+		}
+
+		targetTipFiles = append(targetTipFiles, path)
+		return nil
+	}
+
+	if err := filepath.Walk(c.config.TipsDir, fn); err != nil {
+		log.Fatal(err)
+	}
+
+	for _, v := range targetTipFiles {
+		b, err := os.ReadFile(v)
+		if err != nil {
+			log.Fatal(err)
+		}
+		doc := gmw.Parse(b)
+		headings := gmw.GetHeadingNodes(doc, b, 2)
+
+		relpath, err := filepath.Rel(c.config.DailymemoDir, v)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, vv := range headings {
+			poolTipsToShow = append(poolTipsToShow, fmt.Sprintf("- [%s](%s#%s)\n", string(vv.Text(b)), relpath, string(vv.Text(b))))
+		}
+	}
+
+	fmt.Println(strings.Join(poolTipsToShow, ""))
+
+	doc := gmw.Parse(tb)
+	targetHeader := gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
+	tb = gmw.InsertTextAfter(doc, targetHeader, strings.Join(poolTipsToShow, ""), tb)
 
 	return tb
 }
