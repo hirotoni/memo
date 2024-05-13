@@ -2,10 +2,16 @@ package main
 
 import (
 	"log"
+	"time"
 )
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	tz, err := time.LoadLocation(TIMEZONE)
+	if err != nil {
+		panic(err)
+	}
+	time.Local = tz
 }
 
 // var (

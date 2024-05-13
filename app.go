@@ -135,11 +135,7 @@ func (c *App) InheritHeading(tb []byte, text string) []byte {
 	targetHeader := c.gmw.GetHeadingNode(tDoc, tb, text, 2)
 
 	// previous days
-	tz, err := time.LoadLocation(TIMEZONE)
-	if err != nil {
-		log.Fatal(err)
-	}
-	today := time.Now().In(tz)
+	today := time.Now()
 	for i := range make([]int, DAYS_TO_SEEK) {
 		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
 		pb, err := os.ReadFile(filepath.Join(c.config.DailymemoDir, previousDay+".md"))
