@@ -24,6 +24,7 @@ const (
 
 	FILE_NAME_DAILYMEMO_TEMPLATE = "template.md"
 	FILE_NAME_TIPS_TEMPLATE      = "template.md"
+	FILE_NAME_TIPS_INDEX         = "index.md"
 	FILE_NAME_WEEKLY_REPORT      = "weekly_report.md"
 
 	LAYOUT   = "2006-01-02-Mon"
@@ -45,6 +46,7 @@ var (
 	DAILYMEMO_TEMPLATE_FILE = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_DAILYMEMO, FILE_NAME_DAILYMEMO_TEMPLATE) // .config/memoapp/dailymemo/template.md
 	TIPS_DIR                = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_TIPS)                                    // .config/memoapp/tips/
 	TIPS_TEMPLATE_FILE      = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_TIPS, FILE_NAME_TIPS_TEMPLATE)           // .config/memoapp/tips/template.md
+	TIPS_INDEX_FILE         = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_TIPS, FILE_NAME_TIPS_INDEX)              // .config/memoapp/tips/index.md
 )
 
 type AppConfig struct {
@@ -53,6 +55,7 @@ type AppConfig struct {
 	DailymemoTemplateFile string
 	TipsDir               string
 	TipsTemplateFile      string
+	TipsIndexFile         string
 }
 
 func NewAppConfig() AppConfig {
@@ -62,6 +65,7 @@ func NewAppConfig() AppConfig {
 		DailymemoTemplateFile: DAILYMEMO_TEMPLATE_FILE,
 		TipsDir:               TIPS_DIR,
 		TipsTemplateFile:      TIPS_TEMPLATE_FILE,
+		TipsIndexFile:         TIPS_INDEX_FILE,
 	}
 
 	v, found := os.LookupEnv(ENV_NAME_DEFAULT_BASE_DIR)
@@ -76,6 +80,7 @@ func NewAppConfig() AppConfig {
 		ac.DailymemoTemplateFile = filepath.Join(ac.BaseDir, FOLDER_NAME_DAILYMEMO, FILE_NAME_DAILYMEMO_TEMPLATE)
 		ac.TipsDir = filepath.Join(ac.BaseDir, FOLDER_NAME_TIPS)
 		ac.TipsTemplateFile = filepath.Join(ac.BaseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_TEMPLATE)
+		ac.TipsIndexFile = filepath.Join(ac.BaseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_INDEX)
 	}
 
 	return ac
@@ -139,6 +144,19 @@ func (c *App) Initialize() {
 		f.WriteString(fmt.Sprintf("## %s\n\n", "how to eat sushi (<- YOUR TIPS HERE)"))
 
 		log.Printf("tips template file initialized: %s", c.config.TipsTemplateFile)
+	}
+	// tips index file
+	_, err = os.Stat(c.config.TipsIndexFile)
+	if errors.Is(err, os.ErrNotExist) {
+		f, err := os.Create(c.config.TipsIndexFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		f.WriteString(fmt.Sprintf("# %s\n\n", "Tips Index"))
+
+		log.Printf("tips index file initialized: %s", c.config.TipsIndexFile)
 	}
 }
 
