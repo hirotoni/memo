@@ -280,7 +280,9 @@ func (c *App) AppendTips(tb []byte) []byte {
 			log.Fatal(err)
 		}
 		for _, vv := range headings {
-			poolTipsToShow = append(poolTipsToShow, fmt.Sprintf("- [%s](%s#%s)\n", string(vv.Text(b)), relpath, string(vv.Text(b))))
+			title := string(vv.Text(b))
+			tag := text2tag(title)
+			poolTipsToShow = append(poolTipsToShow, fmt.Sprintf("- [%s](%s#%s)\n", title, relpath, tag))
 		}
 	}
 
@@ -356,13 +358,7 @@ func (c *App) WeeklyReport() {
 
 				var format = "%d. [%s](%s#%s)\n"
 				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
-				tag := strings.ReplaceAll(string(node.Text(b)), " ", "-")
-				tag = strings.ReplaceAll(tag, "#", "")
-				fullwidthchars := strings.Split("　！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？【】『』《》〔〕［］‹›«»〘〙〚〛", "")
-				for _, c := range fullwidthchars {
-					tag = strings.ReplaceAll(tag, c, "")
-				}
-
+				tag := text2tag(string(node.Text(b)))
 				order++
 				s := fmt.Sprintf(format, order, title, relpath, tag)
 				f.WriteString(s)
@@ -373,4 +369,15 @@ func (c *App) WeeklyReport() {
 			f.WriteString("\n")
 		}
 	}
+}
+
+func text2tag(text string) string {
+	var tag = text
+	tag = strings.ReplaceAll(tag, " ", "-")
+	tag = strings.ReplaceAll(tag, "#", "")
+	fullwidthchars := strings.Split("　！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？【】『』《》〔〕［］‹›«»〘〙〚〛", "")
+	for _, c := range fullwidthchars {
+		tag = strings.ReplaceAll(tag, c, "")
+	}
+	return tag
 }
