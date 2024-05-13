@@ -16,11 +16,13 @@ import (
 )
 
 type App struct {
+	gmw    *markdown.GoldmarkWrapper
 	config AppConfig
 }
 
 func NewApp() App {
 	return App{
+		gmw:    markdown.NewGoldmarkWrapper(),
 		config: NewAppConfig(),
 	}
 }
@@ -107,16 +109,14 @@ func (c *App) OpenTodaysMemo() {
 			log.Fatal(err)
 		}
 
-		gmw := markdown.NewGoldmarkWrapper()
-
 		// inherit todos from previous memo
 		b = c.InheritHeading(b, HEADING_NAME_TODOS)
 		b = c.InheritHeading(b, HEADING_NAME_WANTTODOS)
 		b = c.AppendTips(b)
 
-		doc := gmw.Parse(b)
-		targetHeader := gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE, 1)
-		b = gmw.InsertTextAfter(doc, targetHeader, today, b)
+		doc := c.gmw.Parse(b)
+		targetHeader := c.gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE, 1)
+		b = c.gmw.InsertTextAfter(doc, targetHeader, today, b)
 
 		f.Write(b)
 	}
@@ -130,11 +130,9 @@ func (c *App) OpenTodaysMemo() {
 
 // InheritHeading inherits todos from previous day's memo
 func (c *App) InheritHeading(tb []byte, text string) []byte {
-	gmw := markdown.NewGoldmarkWrapper()
-
 	// today
-	tDoc := gmw.Parse(tb)
-	targetHeader := gmw.GetHeadingNode(tDoc, tb, text, 2)
+	tDoc := c.gmw.Parse(tb)
+	targetHeader := c.gmw.GetHeadingNode(tDoc, tb, text, 2)
 
 	// previous days
 	tz, err := time.LoadLocation(TIMEZONE)
@@ -154,10 +152,10 @@ func (c *App) InheritHeading(tb []byte, text string) []byte {
 			log.Fatal(err)
 		}
 
-		pDoc := gmw.Parse(pb)
+		pDoc := c.gmw.Parse(pb)
 
-		nodesToInsert := gmw.FindHeadingAndGetHangingNodes(pDoc, pb, text, 2)
-		tb = gmw.InsertAfter(tDoc, targetHeader, nodesToInsert, tb, pb)
+		nodesToInsert := c.gmw.FindHeadingAndGetHangingNodes(pDoc, pb, text, 2)
+		tb = c.gmw.InsertAfter(tDoc, targetHeader, nodesToInsert, tb, pb)
 		break
 	}
 
@@ -173,8 +171,6 @@ func (c *App) AppendTips(tb []byte) []byte {
 	// - product management, development process knowledge
 	// - bookmarks, web links
 	// - life sayings, someone's sayings
-
-	gmw := markdown.NewGoldmarkWrapper()
 
 	var poolTipsToShow []string
 	// var poolTipsAlreadyShown []string
@@ -201,8 +197,8 @@ func (c *App) AppendTips(tb []byte) []byte {
 		if err != nil {
 			log.Fatal(err)
 		}
-		doc := gmw.Parse(b)
-		headings := gmw.GetHeadingNodes(doc, b, 2)
+		doc := c.gmw.Parse(b)
+		headings := c.gmw.GetHeadingNodes(doc, b, 2)
 
 		relpath, err := filepath.Rel(c.config.DailymemoDir, v)
 		if err != nil {
@@ -217,9 +213,9 @@ func (c *App) AppendTips(tb []byte) []byte {
 
 	fmt.Println(strings.Join(poolTipsToShow, ""))
 
-	doc := gmw.Parse(tb)
-	targetHeader := gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
-	tb = gmw.InsertTextAfter(doc, targetHeader, strings.Join(poolTipsToShow, ""), tb)
+	doc := c.gmw.Parse(tb)
+	targetHeader := c.gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
+	tb = c.gmw.InsertTextAfter(doc, targetHeader, strings.Join(poolTipsToShow, ""), tb)
 
 	return tb
 }
@@ -273,9 +269,8 @@ func (c *App) WeeklyReport() {
 			log.Fatal(err)
 		}
 
-		gmw := markdown.NewGoldmarkWrapper()
-		doc := gmw.Parse(b)
-		hangingNodes := gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS, 2)
+		doc := c.gmw.Parse(b)
+		hangingNodes := c.gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS, 2)
 
 		var order = 0
 		for _, node := range hangingNodes {
