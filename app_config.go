@@ -31,6 +31,23 @@ const (
 	DAYS_TO_SEEK = 10
 )
 
+type Heading struct {
+	text  string
+	level int
+}
+
+var DailyemoTemplate = struct {
+	Title     Heading
+	Todos     Heading
+	WantToDos Heading
+	Memos     Heading
+}{
+	Title:     Heading{text: HEADING_NAME_TITLE, level: 1},
+	Todos:     Heading{text: HEADING_NAME_TODOS, level: 2},
+	WantToDos: Heading{text: HEADING_NAME_WANTTODOS, level: 2},
+	Memos:     Heading{text: HEADING_NAME_MEMOS, level: 2},
+}
+
 var (
 	HOME_DIR                = os.Getenv("HOME")
 	DEFAULT_BASE_DIR        = filepath.Join(HOME_DIR, FOLDER_NAME_CONFIG)                                          // .config/memoapp/
