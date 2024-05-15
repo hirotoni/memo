@@ -28,19 +28,19 @@ func NewApp() App {
 }
 
 // Initialize initializes dirs and files
-func (c *App) Initialize() {
+func (app *App) Initialize() {
 	// dailymemo dir
-	_, err := os.Stat(c.config.DailymemoDir)
+	_, err := os.Stat(app.config.DailymemoDir)
 	if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(c.config.DailymemoDir, 0750); err != nil {
+		if err := os.MkdirAll(app.config.DailymemoDir, 0750); err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("memo directory initialized: %s", c.config.BaseDir)
+		log.Printf("memo directory initialized: %s", app.config.BaseDir)
 	}
 	// dailymemo template file
-	_, err = os.Stat(c.config.DailymemoTemplateFile)
+	_, err = os.Stat(app.config.DailymemoTemplateFile)
 	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(c.config.DailymemoTemplateFile)
+		f, err := os.Create(app.config.DailymemoTemplateFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -51,21 +51,21 @@ func (c *App) Initialize() {
 		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_WANTTODOS))
 		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_MEMOS))
 
-		log.Printf("dailymemo template file initialized: %s", c.config.DailymemoTemplateFile)
+		log.Printf("dailymemo template file initialized: %s", app.config.DailymemoTemplateFile)
 	}
 
 	// tips dir
-	_, err = os.Stat(c.config.TipsDir)
+	_, err = os.Stat(app.config.TipsDir)
 	if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(c.config.TipsDir, 0750); err != nil {
+		if err := os.MkdirAll(app.config.TipsDir, 0750); err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("tips directory initialized: %s", c.config.TipsDir)
+		log.Printf("tips directory initialized: %s", app.config.TipsDir)
 	}
 	// tips template file
-	_, err = os.Stat(c.config.TipsTemplateFile)
+	_, err = os.Stat(app.config.TipsTemplateFile)
 	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(c.config.TipsTemplateFile)
+		f, err := os.Create(app.config.TipsTemplateFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -74,12 +74,12 @@ func (c *App) Initialize() {
 		f.WriteString(fmt.Sprintf("# %s\n\n", "template (<- FILENAME HERE)"))
 		f.WriteString(fmt.Sprintf("## %s\n\n", "how to eat sushi (<- YOUR TIPS HERE)"))
 
-		log.Printf("tips template file initialized: %s", c.config.TipsTemplateFile)
+		log.Printf("tips template file initialized: %s", app.config.TipsTemplateFile)
 	}
 	// tips index file
-	_, err = os.Stat(c.config.TipsIndexFile)
+	_, err = os.Stat(app.config.TipsIndexFile)
 	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(c.config.TipsIndexFile)
+		f, err := os.Create(app.config.TipsIndexFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -87,14 +87,14 @@ func (c *App) Initialize() {
 
 		f.WriteString(fmt.Sprintf("# %s\n\n", "Tips Index"))
 
-		log.Printf("tips index file initialized: %s", c.config.TipsIndexFile)
+		log.Printf("tips index file initialized: %s", app.config.TipsIndexFile)
 	}
 }
 
 // OpenTodaysMemo opens today's memo
-func (c *App) OpenTodaysMemo() {
+func (app *App) OpenTodaysMemo() {
 	today := time.Now().Format(LAYOUT)
-	targetFile := filepath.Join(c.config.DailymemoDir, today+".md")
+	targetFile := filepath.Join(app.config.DailymemoDir, today+".md")
 
 	_, err := os.Stat(targetFile)
 	if errors.Is(err, os.ErrNotExist) {
@@ -104,41 +104,41 @@ func (c *App) OpenTodaysMemo() {
 		}
 		defer f.Close()
 
-		b, err := os.ReadFile(c.config.DailymemoTemplateFile)
+		b, err := os.ReadFile(app.config.DailymemoTemplateFile)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		// inherit todos from previous memo
-		b = c.InheritHeading(b, HEADING_NAME_TODOS)
-		b = c.InheritHeading(b, HEADING_NAME_WANTTODOS)
-		b = c.AppendTips(b)
+		b = app.InheritHeading(b, HEADING_NAME_TODOS)
+		b = app.InheritHeading(b, HEADING_NAME_WANTTODOS)
+		b = app.AppendTips(b)
 
-		doc := c.gmw.Parse(b)
-		targetHeader := c.gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE, 1)
-		b = c.gmw.InsertTextAfter(doc, targetHeader, today, b)
+		doc := app.gmw.Parse(b)
+		targetHeader := app.gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE, 1)
+		b = app.gmw.InsertTextAfter(doc, targetHeader, today, b)
 
 		f.Write(b)
 	}
 
 	// open memo dir with editor
-	cmd := exec.Command("code", targetFile, "--folder-uri", c.config.BaseDir)
+	cmd := exec.Command("code", targetFile, "--folder-uri", app.config.BaseDir)
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
 }
 
 // InheritHeading inherits todos from previous day's memo
-func (c *App) InheritHeading(tb []byte, text string) []byte {
+func (app *App) InheritHeading(tb []byte, text string) []byte {
 	// today
-	tDoc := c.gmw.Parse(tb)
-	targetHeader := c.gmw.GetHeadingNode(tDoc, tb, text, 2)
+	tDoc := app.gmw.Parse(tb)
+	targetHeader := app.gmw.GetHeadingNode(tDoc, tb, text, 2)
 
 	// previous days
 	today := time.Now()
 	for i := range make([]int, DAYS_TO_SEEK) {
 		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
-		pb, err := os.ReadFile(filepath.Join(c.config.DailymemoDir, previousDay+".md"))
+		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir, previousDay+".md"))
 		if errors.Is(err, os.ErrNotExist) {
 			if i+1 == DAYS_TO_SEEK {
 				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
@@ -148,10 +148,10 @@ func (c *App) InheritHeading(tb []byte, text string) []byte {
 			log.Fatal(err)
 		}
 
-		pDoc := c.gmw.Parse(pb)
+		pDoc := app.gmw.Parse(pb)
 
-		nodesToInsert := c.gmw.FindHeadingAndGetHangingNodes(pDoc, pb, text, 2)
-		tb = c.gmw.InsertAfter(tDoc, targetHeader, nodesToInsert, tb, pb)
+		nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pDoc, pb, text, 2)
+		tb = app.gmw.InsertAfter(tDoc, targetHeader, nodesToInsert, tb, pb)
 		break
 	}
 
@@ -159,7 +159,7 @@ func (c *App) InheritHeading(tb []byte, text string) []byte {
 }
 
 // AppendTips appends tips
-func (c *App) AppendTips(tb []byte) []byte {
+func (app *App) AppendTips(tb []byte) []byte {
 	// not yet fully implemented
 
 	// tips are the things that you want to remember periodically such as
@@ -176,7 +176,7 @@ func (c *App) AppendTips(tb []byte) []byte {
 			return err
 		}
 
-		if info.IsDir() || path == c.config.TipsTemplateFile {
+		if info.IsDir() || path == app.config.TipsTemplateFile {
 			return nil
 		}
 
@@ -184,7 +184,7 @@ func (c *App) AppendTips(tb []byte) []byte {
 		return nil
 	}
 
-	if err := filepath.Walk(c.config.TipsDir, fn); err != nil {
+	if err := filepath.Walk(app.config.TipsDir, fn); err != nil {
 		log.Fatal(err)
 	}
 
@@ -193,10 +193,10 @@ func (c *App) AppendTips(tb []byte) []byte {
 		if err != nil {
 			log.Fatal(err)
 		}
-		doc := c.gmw.Parse(b)
-		headings := c.gmw.GetHeadingNodes(doc, b, 2)
+		doc := app.gmw.Parse(b)
+		headings := app.gmw.GetHeadingNodes(doc, b, 2)
 
-		relpath, err := filepath.Rel(c.config.DailymemoDir, v)
+		relpath, err := filepath.Rel(app.config.DailymemoDir, v)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -209,15 +209,15 @@ func (c *App) AppendTips(tb []byte) []byte {
 
 	fmt.Println(strings.Join(poolTipsToShow, ""))
 
-	doc := c.gmw.Parse(tb)
-	targetHeader := c.gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
-	tb = c.gmw.InsertTextAfter(doc, targetHeader, strings.Join(poolTipsToShow, ""), tb)
+	doc := app.gmw.Parse(tb)
+	targetHeader := app.gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
+	tb = app.gmw.InsertTextAfter(doc, targetHeader, strings.Join(poolTipsToShow, ""), tb)
 
 	return tb
 }
 
-func (c *App) WeeklyReport() {
-	e, err := os.ReadDir(c.config.DailymemoDir)
+func (app *App) WeeklyReport() {
+	e, err := os.ReadDir(app.config.DailymemoDir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -227,11 +227,11 @@ func (c *App) WeeklyReport() {
 		format := `\d{4}-\d{2}-\d{2}-\S{3}\.md`
 		reg := regexp.MustCompile(format)
 		if reg.MatchString(file.Name()) {
-			wantfiles = append(wantfiles, filepath.Join(c.config.DailymemoDir, file.Name()))
+			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir, file.Name()))
 		}
 	}
 
-	f, err := os.Create(filepath.Join(c.config.WeeklyReportFile))
+	f, err := os.Create(filepath.Join(app.config.WeeklyReportFile))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -265,13 +265,13 @@ func (c *App) WeeklyReport() {
 			log.Fatal(err)
 		}
 
-		doc := c.gmw.Parse(b)
-		hangingNodes := c.gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS, 2)
+		doc := app.gmw.Parse(b)
+		hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS, 2)
 
 		var order = 0
 		for _, node := range hangingNodes {
 			if n, ok := node.(*ast.Heading); ok {
-				relpath, err := filepath.Rel(c.config.DailymemoDir, fpath)
+				relpath, err := filepath.Rel(app.config.DailymemoDir, fpath)
 				if err != nil {
 					log.Fatal(err)
 				}
