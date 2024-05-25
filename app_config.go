@@ -77,52 +77,50 @@ var DailyemoTemplate = struct {
 }
 
 var (
-	HOME_DIR                = os.Getenv("HOME")
-	DEFAULT_BASE_DIR        = filepath.Join(HOME_DIR, FOLDER_NAME_CONFIG)                                          // .config/memoapp/
-	DAILYMEMO_DIR           = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_DAILYMEMO)                               // .config/memoapp/dailymemo/
-	DAILYMEMO_TEMPLATE_FILE = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_DAILYMEMO, FILE_NAME_DAILYMEMO_TEMPLATE) // .config/memoapp/dailymemo/template.md
-	WEEKLY_REPORT_FILE      = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_DAILYMEMO, FILE_NAME_WEEKLY_REPORT)      // .config/memoapp/dailymemo/weekly_report.md
-	TIPS_DIR                = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_TIPS)                                    // .config/memoapp/tips/
-	TIPS_TEMPLATE_FILE      = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_TIPS, FILE_NAME_TIPS_TEMPLATE)           // .config/memoapp/tips/template.md
-	TIPS_INDEX_FILE         = filepath.Join(DEFAULT_BASE_DIR, FOLDER_NAME_TIPS, FILE_NAME_TIPS_INDEX)              // .config/memoapp/tips/index.md
+	HOME_DIR         = os.Getenv("HOME")
+	DEFAULT_BASE_DIR = filepath.Join(HOME_DIR, FOLDER_NAME_CONFIG) // .config/memoapp/
 )
 
 type AppConfig struct {
-	BaseDir               string
-	DailymemoDir          string
-	DailymemoTemplateFile string
-	WeeklyReportFile      string
-	TipsDir               string
-	TipsTemplateFile      string
-	TipsIndexFile         string
+	baseDir string
 }
 
 func NewAppConfig() AppConfig {
 	ac := AppConfig{
-		BaseDir:               DEFAULT_BASE_DIR,
-		DailymemoDir:          DAILYMEMO_DIR,
-		DailymemoTemplateFile: DAILYMEMO_TEMPLATE_FILE,
-		WeeklyReportFile:      WEEKLY_REPORT_FILE,
-		TipsDir:               TIPS_DIR,
-		TipsTemplateFile:      TIPS_TEMPLATE_FILE,
-		TipsIndexFile:         TIPS_INDEX_FILE,
+		baseDir: DEFAULT_BASE_DIR,
 	}
 
 	v, found := os.LookupEnv(ENV_NAME_DEFAULT_BASE_DIR)
 	if found {
 		if _, err := os.Stat(v); errors.Is(err, os.ErrNotExist) {
-			log.Printf("the directory specified by $%s(%s) does not exist. Using default value(%s).", ENV_NAME_DEFAULT_BASE_DIR, v, ac.BaseDir)
+			log.Printf("the directory specified by $%s(%s) does not exist. Using default value(%s).", ENV_NAME_DEFAULT_BASE_DIR, v, ac.BaseDir())
 			return ac
 		}
 
-		ac.BaseDir = v
-		ac.DailymemoDir = filepath.Join(ac.BaseDir, FOLDER_NAME_DAILYMEMO)
-		ac.DailymemoTemplateFile = filepath.Join(ac.BaseDir, FOLDER_NAME_DAILYMEMO, FILE_NAME_DAILYMEMO_TEMPLATE)
-		ac.WeeklyReportFile = filepath.Join(ac.BaseDir, FOLDER_NAME_DAILYMEMO, FILE_NAME_WEEKLY_REPORT)
-		ac.TipsDir = filepath.Join(ac.BaseDir, FOLDER_NAME_TIPS)
-		ac.TipsTemplateFile = filepath.Join(ac.BaseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_TEMPLATE)
-		ac.TipsIndexFile = filepath.Join(ac.BaseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_INDEX)
+		ac.baseDir = v
 	}
 
 	return ac
+}
+
+func (ac *AppConfig) BaseDir() string {
+	return ac.baseDir
+}
+func (ac *AppConfig) DailymemoDir() string {
+	return filepath.Join(ac.baseDir, FOLDER_NAME_DAILYMEMO) // {basedir}/dailymemo
+}
+func (ac *AppConfig) DailymemoTemplateFile() string {
+	return filepath.Join(ac.baseDir, FOLDER_NAME_DAILYMEMO, FILE_NAME_DAILYMEMO_TEMPLATE) // {basedir}/dailymemo/template.md
+}
+func (ac *AppConfig) WeeklyReportFile() string {
+	return filepath.Join(ac.baseDir, FOLDER_NAME_DAILYMEMO, FILE_NAME_WEEKLY_REPORT) // {basedir}/dailymemo/weekly_report.md
+}
+func (ac *AppConfig) TipsDir() string {
+	return filepath.Join(ac.baseDir, FOLDER_NAME_TIPS) // {basedir}/tips
+}
+func (ac *AppConfig) TipsTemplateFile() string {
+	return filepath.Join(ac.baseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_TEMPLATE) // {basedir}/tips/template.md
+}
+func (ac *AppConfig) TipsIndexFile() string {
+	return filepath.Join(ac.baseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_INDEX) // {basedir}/tips/index.md
 }

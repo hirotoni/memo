@@ -30,17 +30,17 @@ func NewApp() App {
 // Initialize initializes dirs and files
 func (app *App) Initialize() {
 	// dailymemo dir
-	_, err := os.Stat(app.config.DailymemoDir)
+	_, err := os.Stat(app.config.DailymemoDir())
 	if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(app.config.DailymemoDir, 0750); err != nil {
+		if err := os.MkdirAll(app.config.DailymemoDir(), 0750); err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("memo directory initialized: %s", app.config.BaseDir)
+		log.Printf("memo directory initialized: %s", app.config.BaseDir())
 	}
 	// dailymemo template file
-	_, err = os.Stat(app.config.DailymemoTemplateFile)
+	_, err = os.Stat(app.config.DailymemoTemplateFile())
 	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(app.config.DailymemoTemplateFile)
+		f, err := os.Create(app.config.DailymemoTemplateFile())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -48,21 +48,21 @@ func (app *App) Initialize() {
 
 		f.WriteString(dailymemoTemplate)
 
-		log.Printf("dailymemo template file initialized: %s", app.config.DailymemoTemplateFile)
+		log.Printf("dailymemo template file initialized: %s", app.config.DailymemoTemplateFile())
 	}
 
 	// tips dir
-	_, err = os.Stat(app.config.TipsDir)
+	_, err = os.Stat(app.config.TipsDir())
 	if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(app.config.TipsDir, 0750); err != nil {
+		if err := os.MkdirAll(app.config.TipsDir(), 0750); err != nil {
 			log.Fatal(err)
 		}
-		log.Printf("tips directory initialized: %s", app.config.TipsDir)
+		log.Printf("tips directory initialized: %s", app.config.TipsDir())
 	}
 	// tips template file
-	_, err = os.Stat(app.config.TipsTemplateFile)
+	_, err = os.Stat(app.config.TipsTemplateFile())
 	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(app.config.TipsTemplateFile)
+		f, err := os.Create(app.config.TipsTemplateFile())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -70,12 +70,12 @@ func (app *App) Initialize() {
 
 		f.WriteString(tipsTemplate)
 
-		log.Printf("tips template file initialized: %s", app.config.TipsTemplateFile)
+		log.Printf("tips template file initialized: %s", app.config.TipsTemplateFile())
 	}
 	// tips index file
-	_, err = os.Stat(app.config.TipsIndexFile)
+	_, err = os.Stat(app.config.TipsIndexFile())
 	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(app.config.TipsIndexFile)
+		f, err := os.Create(app.config.TipsIndexFile())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -83,14 +83,14 @@ func (app *App) Initialize() {
 
 		f.WriteString(tipsIndexTemplate)
 
-		log.Printf("tips index file initialized: %s", app.config.TipsIndexFile)
+		log.Printf("tips index file initialized: %s", app.config.TipsIndexFile())
 	}
 }
 
 // OpenTodaysMemo opens today's memo
 func (app *App) OpenTodaysMemo(trancate bool) {
 	today := time.Now().Format(LAYOUT)
-	targetFile := filepath.Join(app.config.DailymemoDir, today+".md")
+	targetFile := filepath.Join(app.config.DailymemoDir(), today+".md")
 
 	log.Default().Printf("trancate: %v", trancate)
 
@@ -102,7 +102,7 @@ func (app *App) OpenTodaysMemo(trancate bool) {
 		}
 		defer f.Close()
 
-		b, err := os.ReadFile(app.config.DailymemoTemplateFile)
+		b, err := os.ReadFile(app.config.DailymemoTemplateFile())
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -120,7 +120,7 @@ func (app *App) OpenTodaysMemo(trancate bool) {
 	}
 
 	// open memo dir with editor
-	cmd := exec.Command("code", targetFile, "--folder-uri", app.config.BaseDir)
+	cmd := exec.Command("code", targetFile, "--folder-uri", app.config.BaseDir())
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -136,7 +136,7 @@ func (app *App) InheritHeading(tb []byte, text string) []byte {
 	today := time.Now()
 	for i := range make([]int, DAYS_TO_SEEK) {
 		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
-		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir, previousDay+".md"))
+		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
 		if errors.Is(err, os.ErrNotExist) {
 			if i+1 == DAYS_TO_SEEK {
 				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
@@ -174,7 +174,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 			return err
 		}
 
-		if info.IsDir() || path == app.config.TipsTemplateFile {
+		if info.IsDir() || path == app.config.TipsTemplateFile() {
 			return nil
 		}
 
@@ -182,7 +182,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 		return nil
 	}
 
-	if err := filepath.Walk(app.config.TipsDir, fn); err != nil {
+	if err := filepath.Walk(app.config.TipsDir(), fn); err != nil {
 		log.Fatal(err)
 	}
 
@@ -194,7 +194,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 		doc := app.gmw.Parse(b)
 		headings := app.gmw.GetHeadingNodes(doc, b, 2)
 
-		relpath, err := filepath.Rel(app.config.DailymemoDir, v)
+		relpath, err := filepath.Rel(app.config.DailymemoDir(), v)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -215,7 +215,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 }
 
 func (app *App) WeeklyReport() {
-	e, err := os.ReadDir(app.config.DailymemoDir)
+	e, err := os.ReadDir(app.config.DailymemoDir())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -225,11 +225,11 @@ func (app *App) WeeklyReport() {
 		format := `\d{4}-\d{2}-\d{2}-\S{3}\.md`
 		reg := regexp.MustCompile(format)
 		if reg.MatchString(file.Name()) {
-			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir, file.Name()))
+			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir(), file.Name()))
 		}
 	}
 
-	f, err := os.Create(filepath.Join(app.config.WeeklyReportFile))
+	f, err := os.Create(filepath.Join(app.config.WeeklyReportFile()))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -269,7 +269,7 @@ func (app *App) WeeklyReport() {
 		var order = 0
 		for _, node := range hangingNodes {
 			if n, ok := node.(*ast.Heading); ok {
-				relpath, err := filepath.Rel(app.config.DailymemoDir, fpath)
+				relpath, err := filepath.Rel(app.config.DailymemoDir(), fpath)
 				if err != nil {
 					log.Fatal(err)
 				}
