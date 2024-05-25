@@ -1,8 +1,13 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"time"
+)
+
+var (
+	trancate = flag.Bool("trancate", false, "trancate todays file")
 )
 
 func init() {
@@ -12,16 +17,13 @@ func init() {
 		panic(err)
 	}
 	time.Local = tz
-}
 
-// var (
-// 	flag1 = flag.Bool("flag1", false, "flag 1")
-// 	flag2 = flag.Bool("flag2", false, "flag 2")
-// )
+	flag.Parse()
+}
 
 func main() {
 	app := NewApp()
 	app.Initialize()
-	app.OpenTodaysMemo()
+	app.OpenTodaysMemo(*trancate)
 	app.WeeklyReport()
 }

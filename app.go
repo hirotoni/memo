@@ -92,12 +92,14 @@ func (app *App) Initialize() {
 }
 
 // OpenTodaysMemo opens today's memo
-func (app *App) OpenTodaysMemo() {
+func (app *App) OpenTodaysMemo(trancate bool) {
 	today := time.Now().Format(LAYOUT)
 	targetFile := filepath.Join(app.config.DailymemoDir, today+".md")
 
+	log.Default().Printf("trancate: %v", trancate)
+
 	_, err := os.Stat(targetFile)
-	if errors.Is(err, os.ErrNotExist) {
+	if errors.Is(err, os.ErrNotExist) || trancate {
 		f, err := os.Create(targetFile)
 		if err != nil {
 			log.Fatal(err)
