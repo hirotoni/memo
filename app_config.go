@@ -20,8 +20,9 @@ const (
 	FILE_NAME_TIPS_INDEX         = "index.md"
 	FILE_NAME_WEEKLY_REPORT      = "weekly_report.md"
 
-	LAYOUT   = "2006-01-02-Mon"
-	TIMEZONE = "Asia/Tokyo"
+	TIMEZONE     = "Asia/Tokyo"
+	LAYOUT       = "2006-01-02-Mon"
+	LAYOUT_REGEX = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
 
 	HEADING_NAME_TITLE     = "daily memo"
 	HEADING_NAME_TODOS     = "todos"

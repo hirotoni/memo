@@ -221,9 +221,8 @@ func (app *App) WeeklyReport() {
 	}
 
 	wantfiles := []string{}
+	reg := regexp.MustCompile(LAYOUT_REGEX)
 	for _, file := range e {
-		format := `\d{4}-\d{2}-\d{2}-\S{3}\.md`
-		reg := regexp.MustCompile(format)
 		if reg.MatchString(file.Name()) {
 			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir(), file.Name()))
 		}
