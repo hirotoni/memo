@@ -46,10 +46,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(fmt.Sprintf("# %s\n\n", HEADING_NAME_TITLE))
-		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_TODOS))
-		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_WANTTODOS))
-		f.WriteString(fmt.Sprintf("## %s\n\n", HEADING_NAME_MEMOS))
+		f.WriteString(dailymemoTemplate)
 
 		log.Printf("dailymemo template file initialized: %s", app.config.DailymemoTemplateFile)
 	}
@@ -71,8 +68,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(fmt.Sprintf("# %s\n\n", "template (<- FILENAME HERE)"))
-		f.WriteString(fmt.Sprintf("## %s\n\n", "how to eat sushi (<- YOUR TIPS HERE)"))
+		f.WriteString(tipsTemplate)
 
 		log.Printf("tips template file initialized: %s", app.config.TipsTemplateFile)
 	}
@@ -85,7 +81,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(fmt.Sprintf("# %s\n\n", "Tips Index"))
+		f.WriteString(tipsIndexTemplate)
 
 		log.Printf("tips index file initialized: %s", app.config.TipsIndexFile)
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -29,6 +30,33 @@ const (
 
 	// number of dates to seek back when inheriting todos from previous days
 	DAYS_TO_SEEK = 10
+)
+
+const dailymemoTemplateFmt = `# %s
+
+## %s
+
+## %s
+
+## %s
+`
+
+var dailymemoTemplate = fmt.Sprintf(dailymemoTemplateFmt,
+	HEADING_NAME_TITLE,
+	HEADING_NAME_TODOS,
+	HEADING_NAME_WANTTODOS,
+	HEADING_NAME_MEMOS,
+)
+
+const (
+	tipsTemplate = `# sushi (<- CATEGORY NAME HERE)
+	
+## how to eat sushi (<- YOUR TIPS HERE)
+	
+## how to roll sushi (<- ANOTHER RELATED TIPS HERE)
+`
+	tipsIndexTemplate = `# Tips Index
+`
 )
 
 type Heading struct {
