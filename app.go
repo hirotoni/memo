@@ -302,11 +302,10 @@ func (app *App) WeeklyReport() {
 					log.Fatal(err)
 				}
 
-				var format = "%d. [%s](%s#%s)\n"
+				order++
 				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
 				tag := text2tag(string(node.Text(b)))
-				order++
-				s := fmt.Sprintf(format, order, title, relpath, tag)
+				s := buildOrderedList(order, buildLink(title, relpath, tag))
 				f.WriteString(s)
 			}
 		}
@@ -334,6 +333,10 @@ func buildLink(text, link, tag string) string {
 
 func buildList(text string) string {
 	return "- " + text + "\n"
+}
+
+func buildOrderedList(order int, text string) string {
+	return fmt.Sprint(order) + ". " + text + "\n"
 }
 
 func buildCheckbox(text string, checked bool) string {
