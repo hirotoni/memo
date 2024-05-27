@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -166,7 +167,8 @@ func (app *App) AppendTips(tb []byte) []byte {
 	// - bookmarks, web links
 	// - life sayings, someone's sayings
 
-	var poolTipsToShow []string
+	// var poolTipsToShow []string
+	var poolTipsToIndex []string
 	// var poolTipsAlreadyShown []string
 	var targetTipFiles []string
 	var fn = func(path string, info os.FileInfo, err error) error {
@@ -186,6 +188,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 		log.Fatal(err)
 	}
 
+	var alltips [][]string
 	for _, v := range targetTipFiles {
 		b, err := os.ReadFile(v)
 		if err != nil {
@@ -201,15 +204,41 @@ func (app *App) AppendTips(tb []byte) []byte {
 		for _, vv := range headings {
 			title := string(vv.Text(b))
 			tag := text2tag(title)
-			poolTipsToShow = append(poolTipsToShow, fmt.Sprintf("- [%s](%s#%s)\n", title, relpath, tag))
+			alltips = append(alltips, []string{title, relpath, tag})
 		}
 	}
 
-	fmt.Println(strings.Join(poolTipsToShow, ""))
+	// pick one
+	chosen := rand.Intn(len(alltips))
+	for i, v := range alltips {
+		var index string
+		if i == chosen {
+			index = buildCheckbox(buildLink(v[0], v[1], v[2]), true)
+		} else {
+			index = buildCheckbox(buildLink(v[0], v[1], v[2]), false)
+		}
+		poolTipsToIndex = append(poolTipsToIndex, index)
+	}
 
+	// insert todays tip
+	chosenTip := buildList(buildLink(alltips[chosen][0], alltips[chosen][1], alltips[chosen][2]))
 	doc := app.gmw.Parse(tb)
 	targetHeader := app.gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
-	tb = app.gmw.InsertTextAfter(doc, targetHeader, strings.Join(poolTipsToShow, ""), tb)
+	tb = app.gmw.InsertTextAfter(doc, targetHeader, chosenTip, tb)
+
+	// write tips index
+	f, err := os.Create(app.config.TipsIndexFile())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	tipsb := []byte(tipsIndexTemplate)
+	doc = app.gmw.Parse(tipsb)
+	targetHeader = app.gmw.GetHeadingNode(doc, tipsb, "Tips Index", 1)
+	tipsb = app.gmw.InsertTextAfter(doc, targetHeader, strings.Join(poolTipsToIndex, ""), tipsb)
+
+	f.Write(tipsb)
 
 	return tb
 }
@@ -297,4 +326,20 @@ func text2tag(text string) string {
 		tag = strings.ReplaceAll(tag, c, "")
 	}
 	return tag
+}
+
+func buildLink(text, link, tag string) string {
+	return "[" + text + "]" + "(" + link + "#" + tag + ")"
+}
+
+func buildList(text string) string {
+	return "- " + text + "\n"
+}
+
+func buildCheckbox(text string, checked bool) string {
+	if checked {
+		return "- [x] " + text + "\n"
+	} else {
+		return "- [ ] " + text + "\n"
+	}
 }
