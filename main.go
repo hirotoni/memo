@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	trancate = flag.Bool("trancate", false, "trancate todays file")
+	truncate = flag.Bool("truncate", false, "truncate todays file")
 )
 
 func init() {
@@ -24,6 +24,6 @@ func init() {
 func main() {
 	app := NewApp()
 	app.Initialize()
-	app.OpenTodaysMemo(*trancate)
+	app.OpenTodaysMemo(*truncate)
 	app.WeeklyReport()
 }
