@@ -9,11 +9,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/hirotoni/memo/markdown"
 	"github.com/yuin/goldmark/ast"
+	extast "github.com/yuin/goldmark/extension/ast"
 )
 
 type App struct {
@@ -167,10 +169,14 @@ func (app *App) AppendTips(tb []byte) []byte {
 	// - bookmarks, web links
 	// - life sayings, someone's sayings
 
-	// var poolTipsToShow []string
-	var poolTipsToIndex []string
-	// var poolTipsAlreadyShown []string
 	var targetTipFiles []string
+	var allTips []Tip
+	var allTipsNotShown []Tip
+	var allTipsShown []Tip
+	var tipsToIndex []string
+
+	var indexTipsShown = filter(app.getTipsFromIndex(), func(t Tip) bool { return t.Checked })
+
 	var fn = func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -188,7 +194,6 @@ func (app *App) AppendTips(tb []byte) []byte {
 		log.Fatal(err)
 	}
 
-	var alltips [][]string
 	for _, v := range targetTipFiles {
 		b, err := os.ReadFile(v)
 		if err != nil {
@@ -204,29 +209,75 @@ func (app *App) AppendTips(tb []byte) []byte {
 		for _, vv := range headings {
 			title := string(vv.Text(b))
 			tag := text2tag(title)
-			alltips = append(alltips, []string{title, relpath, tag})
+			tip := Tip{
+				Text:        title,
+				Destination: relpath + "#" + tag,
+				Checked:     false,
+			}
+			allTips = append(allTips, tip)
+			shown := slices.ContainsFunc(indexTipsShown, func(t Tip) bool { return t.Text == tip.Text && t.Destination == tip.Destination })
+			if shown {
+				tip.Checked = true
+				allTipsShown = append(allTipsShown, tip)
+			} else {
+				allTipsNotShown = append(allTipsNotShown, tip)
+			}
 		}
+	}
+
+	// log.Default().Println(allTips)
+	// log.Default().Println(allTipsShown)
+	// log.Default().Println(allTipsNotShown)
+	// log.Default().Println(indexTipsShown)
+
+	// if all tips have been shown, then reset
+	if len(allTipsNotShown) == 0 {
+		allTipsNotShown = allTips
+		allTipsShown = []Tip{}
 	}
 
 	// pick one
-	chosen := rand.Intn(len(alltips))
-	for i, v := range alltips {
-		var index string
-		if i == chosen {
-			index = buildCheckbox(buildLink(v[0], v[1], v[2]), true)
-		} else {
-			index = buildCheckbox(buildLink(v[0], v[1], v[2]), false)
-		}
-		poolTipsToIndex = append(poolTipsToIndex, index)
-	}
+	chosen := rand.Intn(len(allTipsNotShown))
 
 	// insert todays tip
-	chosenTip := buildList(buildLink(alltips[chosen][0], alltips[chosen][1], alltips[chosen][2]))
+	chosenTip := buildList(buildLink(allTipsNotShown[chosen].Text, allTipsNotShown[chosen].Destination))
 	doc := app.gmw.Parse(tb)
 	targetHeader := app.gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
 	tb = app.gmw.InsertTextAfter(doc, targetHeader, chosenTip, tb)
 
-	// write tips index
+	// groom tips to index
+	var groom []Tip
+	for i, v := range allTipsNotShown {
+		var tip Tip
+		if i == chosen {
+			v.Checked = true
+			tip = v
+		} else {
+			v.Checked = false
+			tip = v
+		}
+		groom = append(groom, tip)
+	}
+
+	for _, v := range allTipsShown {
+		v.Checked = true
+		groom = append(groom, v)
+	}
+
+	slices.SortFunc(groom, func(a, b Tip) int {
+		if a.Destination < b.Destination {
+			return -1
+		} else {
+			return 1
+		}
+	})
+
+	for _, v := range groom {
+		index := buildCheckbox(buildLink(v.Text, v.Destination), v.Checked)
+		tipsToIndex = append(tipsToIndex, index)
+	}
+
+	// write tips to index
 	f, err := os.Create(app.config.TipsIndexFile())
 	if err != nil {
 		log.Fatal(err)
@@ -236,7 +287,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 	tipsb := []byte(tipsIndexTemplate)
 	doc = app.gmw.Parse(tipsb)
 	targetHeader = app.gmw.GetHeadingNode(doc, tipsb, "Tips Index", 1)
-	tipsb = app.gmw.InsertTextAfter(doc, targetHeader, strings.Join(poolTipsToIndex, ""), tipsb)
+	tipsb = app.gmw.InsertTextAfter(doc, targetHeader, strings.Join(tipsToIndex, ""), tipsb)
 
 	f.Write(tipsb)
 
@@ -305,7 +356,7 @@ func (app *App) WeeklyReport() {
 				order++
 				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
 				tag := text2tag(string(node.Text(b)))
-				s := buildOrderedList(order, buildLink(title, relpath, tag))
+				s := buildOrderedList(order, buildLink(title, relpath+"#"+tag))
 				f.WriteString(s)
 			}
 		}
@@ -327,8 +378,8 @@ func text2tag(text string) string {
 	return tag
 }
 
-func buildLink(text, link, tag string) string {
-	return "[" + text + "]" + "(" + link + "#" + tag + ")"
+func buildLink(text, destination string) string {
+	return "[" + text + "]" + "(" + destination + ")"
 }
 
 func buildList(text string) string {
@@ -345,4 +396,55 @@ func buildCheckbox(text string, checked bool) string {
 	} else {
 		return "- [ ] " + text + "\n"
 	}
+}
+
+type Tip struct {
+	Text        string
+	Destination string
+	Checked     bool
+}
+
+func (app *App) getTipsFromIndex() []Tip {
+	b, err := os.ReadFile(app.config.TipsIndexFile())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	doc := app.gmw.Parse(b)
+	// doc.Dump(b, 1)
+
+	var tips []Tip
+	var mywalker = func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if entering {
+			if n.Kind() == ast.KindTextBlock && n.Parent().Kind() == ast.KindListItem {
+				var t = Tip{}
+				for c := n.FirstChild(); c != nil; c = c.NextSibling() {
+					if c, ok := c.(*ast.Link); ok {
+						t.Text = string(c.Text(b))
+						t.Destination = string(c.Destination)
+					}
+					if c, ok := c.(*extast.TaskCheckBox); ok {
+						t.Checked = c.IsChecked
+					}
+				}
+				tips = append(tips, t)
+			}
+		}
+		return ast.WalkContinue, nil
+	}
+	err = ast.Walk(doc, mywalker)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return tips
+}
+
+func filter[T any](ts []T, test func(T) bool) (ret []T) {
+	for _, s := range ts {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
 }
