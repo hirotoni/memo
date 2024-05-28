@@ -273,7 +273,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 	})
 
 	for _, v := range groom {
-		index := buildCheckbox(buildLink(v.Text, v.Destination), v.Checked)
+		index := buildCheckbox(buildLink(v.Text, v.Destination), v.Checked) + "\n"
 		tipsToIndex = append(tipsToIndex, index)
 	}
 
@@ -356,7 +356,7 @@ func (app *App) WeeklyReport() {
 				order++
 				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
 				tag := text2tag(string(node.Text(b)))
-				s := buildOrderedList(order, buildLink(title, relpath+"#"+tag))
+				s := buildOrderedList(order, buildLink(title, relpath+"#"+tag)) + "\n"
 				f.WriteString(s)
 			}
 		}
@@ -387,14 +387,14 @@ func buildList(text string) string {
 }
 
 func buildOrderedList(order int, text string) string {
-	return fmt.Sprint(order) + ". " + text + "\n"
+	return fmt.Sprint(order) + ". " + text
 }
 
 func buildCheckbox(text string, checked bool) string {
 	if checked {
-		return "- [x] " + text + "\n"
+		return "- [x] " + text
 	} else {
-		return "- [ ] " + text + "\n"
+		return "- [ ] " + text
 	}
 }
 
