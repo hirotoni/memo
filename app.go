@@ -383,7 +383,7 @@ func buildLink(text, destination string) string {
 }
 
 func buildList(text string) string {
-	return "- " + text + "\n"
+	return "- " + text
 }
 
 func buildOrderedList(order int, text string) string {
