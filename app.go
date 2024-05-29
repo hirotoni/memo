@@ -207,15 +207,16 @@ func (app *App) AppendTips(tb []byte) []byte {
 		}
 		for _, vv := range headings {
 			title := string(vv.Text(b))
-			tag := text2tag(title)
+			destination := relpath + "#" + text2tag(title)
+			checked := slices.ContainsFunc(indexTipsShown, func(t Tip) bool { return t.Destination == destination })
+
 			tip := Tip{
 				Text:        title,
-				Destination: relpath + "#" + tag,
-				Checked:     false,
+				Destination: destination,
+				Checked:     checked,
 			}
-			shown := slices.ContainsFunc(indexTipsShown, func(t Tip) bool { return t.Text == tip.Text && t.Destination == tip.Destination })
-			if shown {
-				tip.Checked = true
+
+			if tip.Checked {
 				allTipsShown = append(allTipsShown, tip)
 			} else {
 				allTipsNotShown = append(allTipsNotShown, tip)
@@ -229,7 +230,12 @@ func (app *App) AppendTips(tb []byte) []byte {
 
 	// if all tips have been shown, then reset
 	if len(allTipsNotShown) == 0 {
-		allTipsNotShown = allTipsShown
+		var tmp []Tip
+		for _, v := range allTipsShown {
+			v.Checked = false
+			tmp = append(tmp, v)
+		}
+		allTipsNotShown = tmp
 		allTipsShown = []Tip{}
 	}
 
@@ -245,15 +251,10 @@ func (app *App) AppendTips(tb []byte) []byte {
 	// groom tips to index
 	var groom []Tip
 	for i, v := range allTipsNotShown {
-		var tip Tip
 		if i == chosen {
 			v.Checked = true
-			tip = v
-		} else {
-			v.Checked = false
-			tip = v
 		}
-		groom = append(groom, tip)
+		groom = append(groom, v)
 	}
 
 	for _, v := range allTipsShown {
