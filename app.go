@@ -170,7 +170,6 @@ func (app *App) AppendTips(tb []byte) []byte {
 	// - life sayings, someone's sayings
 
 	var targetTipFiles []string
-	var allTips []Tip
 	var allTipsNotShown []Tip
 	var allTipsShown []Tip
 	var tipsToIndex []string
@@ -214,7 +213,6 @@ func (app *App) AppendTips(tb []byte) []byte {
 				Destination: relpath + "#" + tag,
 				Checked:     false,
 			}
-			allTips = append(allTips, tip)
 			shown := slices.ContainsFunc(indexTipsShown, func(t Tip) bool { return t.Text == tip.Text && t.Destination == tip.Destination })
 			if shown {
 				tip.Checked = true
@@ -225,14 +223,13 @@ func (app *App) AppendTips(tb []byte) []byte {
 		}
 	}
 
-	// log.Default().Println(allTips)
 	// log.Default().Println(allTipsShown)
 	// log.Default().Println(allTipsNotShown)
 	// log.Default().Println(indexTipsShown)
 
 	// if all tips have been shown, then reset
 	if len(allTipsNotShown) == 0 {
-		allTipsNotShown = allTips
+		allTipsNotShown = allTipsShown
 		allTipsShown = []Tip{}
 	}
 
