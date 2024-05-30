@@ -49,7 +49,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(dailymemoTemplate)
+		f.WriteString(TemplateDailymemo.String())
 
 		log.Printf("dailymemo template file initialized: %s", app.config.DailymemoTemplateFile())
 	}
@@ -71,7 +71,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(tipsTemplate)
+		f.WriteString(TemplateTips.String())
 
 		log.Printf("tips template file initialized: %s", app.config.TipsTemplateFile())
 	}
@@ -84,7 +84,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(tipsIndexTemplate)
+		f.WriteString(TemplateTipsIndex.String())
 
 		log.Printf("tips index file initialized: %s", app.config.TipsIndexFile())
 	}
@@ -282,9 +282,9 @@ func (app *App) AppendTips(tb []byte) []byte {
 	}
 	defer f.Close()
 
-	tipsb := []byte(tipsIndexTemplate)
+	tipsb := []byte(TemplateTipsIndex.String())
 	doc = app.gmw.Parse(tipsb)
-	targetHeader = app.gmw.GetHeadingNode(doc, tipsb, "Tips Index", 1)
+	targetHeader = app.gmw.GetHeadingNode(doc, tipsb, HEADING_NAME_TIPSINDEX, 1)
 	tipsb = app.gmw.InsertTextAfter(doc, targetHeader, strings.Join(tipsToIndex, ""), tipsb)
 
 	f.Write(tipsb)
@@ -374,6 +374,10 @@ func text2tag(text string) string {
 		tag = strings.ReplaceAll(tag, c, "")
 	}
 	return tag
+}
+
+func buildHeading(level int, text string) string {
+	return strings.Repeat("#", level) + " " + text
 }
 
 func buildLink(text, destination string) string {

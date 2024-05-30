@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -24,58 +23,9 @@ const (
 	LAYOUT       = "2006-01-02-Mon"
 	LAYOUT_REGEX = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
 
-	HEADING_NAME_TITLE     = "daily memo"
-	HEADING_NAME_TODOS     = "todos"
-	HEADING_NAME_WANTTODOS = "wanttodos"
-	HEADING_NAME_MEMOS     = "memos"
-
 	// number of dates to seek back when inheriting todos from previous days
 	DAYS_TO_SEEK = 10
 )
-
-const dailymemoTemplateFmt = `# %s
-
-## %s
-
-## %s
-
-## %s
-`
-
-var dailymemoTemplate = fmt.Sprintf(dailymemoTemplateFmt,
-	HEADING_NAME_TITLE,
-	HEADING_NAME_TODOS,
-	HEADING_NAME_WANTTODOS,
-	HEADING_NAME_MEMOS,
-)
-
-const (
-	tipsTemplate = `# sushi (<- CATEGORY NAME HERE)
-	
-## how to eat sushi (<- YOUR TIPS HERE)
-	
-## how to roll sushi (<- ANOTHER RELATED TIPS HERE)
-`
-	tipsIndexTemplate = `# Tips Index
-`
-)
-
-type Heading struct {
-	text  string
-	level int
-}
-
-var DailyemoTemplate = struct {
-	Title     Heading
-	Todos     Heading
-	WantToDos Heading
-	Memos     Heading
-}{
-	Title:     Heading{text: HEADING_NAME_TITLE, level: 1},
-	Todos:     Heading{text: HEADING_NAME_TODOS, level: 2},
-	WantToDos: Heading{text: HEADING_NAME_WANTTODOS, level: 2},
-	Memos:     Heading{text: HEADING_NAME_MEMOS, level: 2},
-}
 
 var (
 	HOME_DIR         = os.Getenv("HOME")
