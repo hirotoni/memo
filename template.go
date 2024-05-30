@@ -1,6 +1,10 @@
 package main
 
-import "strings"
+import (
+	"strings"
+
+	md "github.com/hirotoni/memo/markdown"
+)
 
 type Heading struct {
 	level int
@@ -16,7 +20,7 @@ type Template struct {
 func (t *Template) String() string {
 	sb := strings.Builder{}
 	for i, h := range t.Headings {
-		sb.WriteString(buildHeading(h.level, h.text) + "\n")
+		sb.WriteString(md.BuildHeading(h.level, h.text) + "\n")
 		if i < len(t.Headings)-1 {
 			sb.WriteString("\n")
 		}

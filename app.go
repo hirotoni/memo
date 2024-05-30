@@ -13,19 +13,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotoni/memo/markdown"
+	md "github.com/hirotoni/memo/markdown"
 	"github.com/yuin/goldmark/ast"
 	extast "github.com/yuin/goldmark/extension/ast"
 )
 
 type App struct {
-	gmw    *markdown.GoldmarkWrapper
+	gmw    *md.GoldmarkWrapper
 	config AppConfig
 }
 
 func NewApp() App {
 	return App{
-		gmw:    markdown.NewGoldmarkWrapper(),
+		gmw:    md.NewGoldmarkWrapper(),
 		config: NewAppConfig(),
 	}
 }
@@ -207,7 +207,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 		}
 		for _, vv := range headings {
 			title := string(vv.Text(b))
-			destination := relpath + "#" + text2tag(title)
+			destination := relpath + "#" + md.Text2tag(title)
 			checked := slices.ContainsFunc(indexTipsShown, func(t Tip) bool { return t.Destination == destination })
 
 			tip := Tip{
@@ -243,7 +243,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 	chosen := rand.Intn(len(allTipsNotShown))
 
 	// insert todays tip
-	chosenTip := buildList(buildLink(allTipsNotShown[chosen].Text, allTipsNotShown[chosen].Destination))
+	chosenTip := md.BuildList(md.BuildLink(allTipsNotShown[chosen].Text, allTipsNotShown[chosen].Destination))
 	doc := app.gmw.Parse(tb)
 	targetHeader := app.gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
 	tb = app.gmw.InsertTextAfter(doc, targetHeader, chosenTip, tb)
@@ -271,7 +271,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 	})
 
 	for _, v := range groom {
-		index := buildCheckbox(buildLink(v.Text, v.Destination), v.Checked) + "\n"
+		index := md.BuildCheckbox(md.BuildLink(v.Text, v.Destination), v.Checked) + "\n"
 		tipsToIndex = append(tipsToIndex, index)
 	}
 
@@ -353,8 +353,8 @@ func (app *App) WeeklyReport() {
 
 				order++
 				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
-				tag := text2tag(string(node.Text(b)))
-				s := buildOrderedList(order, buildLink(title, relpath+"#"+tag)) + "\n"
+				tag := md.Text2tag(string(node.Text(b)))
+				s := md.BuildOrderedList(order, md.BuildLink(title, relpath+"#"+tag)) + "\n"
 				f.WriteString(s)
 			}
 		}
@@ -362,41 +362,6 @@ func (app *App) WeeklyReport() {
 		if order > 0 {
 			f.WriteString("\n")
 		}
-	}
-}
-
-func text2tag(text string) string {
-	var tag = text
-	tag = strings.ReplaceAll(tag, " ", "-")
-	tag = strings.ReplaceAll(tag, "#", "")
-	fullwidthchars := strings.Split("　！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？【】『』《》〔〕［］‹›«»〘〙〚〛", "")
-	for _, c := range fullwidthchars {
-		tag = strings.ReplaceAll(tag, c, "")
-	}
-	return tag
-}
-
-func buildHeading(level int, text string) string {
-	return strings.Repeat("#", level) + " " + text
-}
-
-func buildLink(text, destination string) string {
-	return "[" + text + "]" + "(" + destination + ")"
-}
-
-func buildList(text string) string {
-	return "- " + text
-}
-
-func buildOrderedList(order int, text string) string {
-	return fmt.Sprint(order) + ". " + text
-}
-
-func buildCheckbox(text string, checked bool) string {
-	if checked {
-		return "- [x] " + text
-	} else {
-		return "- [ ] " + text
 	}
 }
 
