@@ -7,8 +7,8 @@ import (
 )
 
 type Heading struct {
-	level int
-	text  string
+	Level int
+	Text  string
 }
 
 type Template struct {
@@ -18,7 +18,7 @@ type Template struct {
 func (t *Template) String() string {
 	sb := strings.Builder{}
 	for i, h := range t.Headings {
-		sb.WriteString(md.BuildHeading(h.level, h.text) + "\n")
+		sb.WriteString(md.BuildHeading(h.Level, h.Text) + "\n")
 		if i < len(t.Headings)-1 {
 			sb.WriteString("\n")
 		}
@@ -26,33 +26,34 @@ func (t *Template) String() string {
 	return sb.String()
 }
 
-const (
-	HEADING_NAME_TITLE     = "daily memo"
-	HEADING_NAME_TODOS     = "todos"
-	HEADING_NAME_WANTTODOS = "wanttodos"
-	HEADING_NAME_MEMOS     = "memos"
-	HEADING_NAME_TIPSINDEX = "Tips Index"
+var (
+	HEADING_NAME_TITLE     = Heading{Level: 1, Text: "daily memo"}
+	HEADING_NAME_TODOS     = Heading{Level: 2, Text: "todos"}
+	HEADING_NAME_WANTTODOS = Heading{Level: 2, Text: "wanttodos"}
+	HEADING_NAME_MEMOS     = Heading{Level: 2, Text: "memos"}
+
+	HEADING_NAME_TIPSINDEX = Heading{Level: 1, Text: "Tips Index"}
 )
 
 var (
 	TemplateDailymemo = Template{
 		Headings: []Heading{
-			{level: 1, text: HEADING_NAME_TITLE},
-			{level: 2, text: HEADING_NAME_TODOS},
-			{level: 2, text: HEADING_NAME_WANTTODOS},
-			{level: 2, text: HEADING_NAME_MEMOS},
+			HEADING_NAME_TITLE,
+			HEADING_NAME_TODOS,
+			HEADING_NAME_WANTTODOS,
+			HEADING_NAME_MEMOS,
 		},
 	}
 	TemplateTips = Template{
 		Headings: []Heading{
-			{level: 1, text: "sushi (<- CATEGORY NAME HERE)"},
-			{level: 2, text: "how to eat sushi (<- YOUR TIPS HERE)"},
-			{level: 2, text: "how to roll sushi (<- ANOTHER RELATED TIPS HERE)"},
+			{Level: 1, Text: "sushi (<- CATEGORY NAME HERE)"},
+			{Level: 2, Text: "how to eat sushi (<- YOUR TIPS HERE)"},
+			{Level: 2, Text: "how to roll sushi (<- ANOTHER RELATED TIPS HERE)"},
 		},
 	}
 	TemplateTipsIndex = Template{
 		Headings: []Heading{
-			{level: 1, text: HEADING_NAME_TIPSINDEX},
+			HEADING_NAME_TIPSINDEX,
 		},
 	}
 )

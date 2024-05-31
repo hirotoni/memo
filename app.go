@@ -111,12 +111,12 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 		}
 
 		// inherit todos from previous memo
-		b = app.InheritHeading(b, HEADING_NAME_TODOS)
-		b = app.InheritHeading(b, HEADING_NAME_WANTTODOS)
+		b = app.InheritHeading(b, HEADING_NAME_TODOS.Text)
+		b = app.InheritHeading(b, HEADING_NAME_WANTTODOS.Text)
 		b = app.AppendTips(b)
 
 		doc := app.gmw.Parse(b)
-		targetHeader := app.gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE, 1)
+		targetHeader := app.gmw.GetHeadingNode(doc, b, HEADING_NAME_TITLE.Text, 1)
 		b = app.gmw.InsertTextAfter(doc, targetHeader, today, b)
 
 		f.Write(b)
@@ -245,7 +245,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 	// insert todays tip
 	chosenTip := md.BuildList(md.BuildLink(allTipsNotShown[chosen].Text, allTipsNotShown[chosen].Destination))
 	doc := app.gmw.Parse(tb)
-	targetHeader := app.gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE, 1)
+	targetHeader := app.gmw.GetHeadingNode(doc, tb, HEADING_NAME_TITLE.Text, 1)
 	tb = app.gmw.InsertTextAfter(doc, targetHeader, chosenTip, tb)
 
 	// groom tips to index
@@ -284,7 +284,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 
 	tipsb := []byte(TemplateTipsIndex.String())
 	doc = app.gmw.Parse(tipsb)
-	targetHeader = app.gmw.GetHeadingNode(doc, tipsb, HEADING_NAME_TIPSINDEX, 1)
+	targetHeader = app.gmw.GetHeadingNode(doc, tipsb, HEADING_NAME_TIPSINDEX.Text, 1)
 	tipsb = app.gmw.InsertTextAfter(doc, targetHeader, strings.Join(tipsToIndex, ""), tipsb)
 
 	f.Write(tipsb)
@@ -341,7 +341,7 @@ func (app *App) WeeklyReport() {
 		}
 
 		doc := app.gmw.Parse(b)
-		hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS, 2)
+		hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS.Text, 2)
 
 		var order = 0
 		for _, node := range hangingNodes {
