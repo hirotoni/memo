@@ -129,39 +129,39 @@ loop:
 	return resultNodes
 }
 
-// InsertAfter inserts insertees to self node at target position, and returns updated byte array of self node as the result of the insertion
-func (gmw *GoldmarkWrapper) InsertAfter(self ast.Node, target ast.Node, insertees []ast.Node, selfSource, nodeSource []byte) []byte {
+// InsertNodesAfter inserts nodes to document at target position, and returns updated byte array of document as the result of the insert operation
+func (gmw *GoldmarkWrapper) InsertNodesAfter(doc ast.Node, targetNode ast.Node, nodesToInsert []ast.Node, sourceSelf, sourceNodesToInsert []byte) []byte {
 	// insert from tail nodes
-	slices.Reverse(insertees)
+	slices.Reverse(nodesToInsert)
 
-	for _, n := range insertees {
-		self.InsertAfter(self, target, n)
-		s := target.Lines().At(0) // TODO error handling
+	for _, n := range nodesToInsert {
+		doc.InsertAfter(doc, targetNode, n)
+		s := targetNode.Lines().At(0) // TODO error handling
 
 		tmp := new(bytes.Buffer)
-		gmw.Render(tmp, nodeSource, n)
+		gmw.Render(tmp, sourceNodesToInsert, n)
 
 		buf := []byte{}
-		buf = append(buf, selfSource[:s.Stop]...)
+		buf = append(buf, sourceSelf[:s.Stop]...)
 		buf = append(buf, tmp.Bytes()...)
-		buf = append(buf, selfSource[s.Stop:]...)
-		selfSource = buf
+		buf = append(buf, sourceSelf[s.Stop:]...)
+		sourceSelf = buf
 	}
 
-	return selfSource
+	return sourceSelf
 }
 
-func (gmw *GoldmarkWrapper) InsertTextAfter(selfSource []byte, targetHeading Heading, text string) []byte {
-	doc := gmw.Parse(selfSource)
-	targetHeaderNode := gmw.GetHeadingNode(doc, selfSource, targetHeading)
+func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading Heading, text string) []byte {
+	doc := gmw.Parse(sourceSelf)
+	targetHeaderNode := gmw.GetHeadingNode(doc, sourceSelf, targetHeading)
 
 	s := targetHeaderNode.Lines().At(0)
 
 	buf := []byte{}
-	buf = append(buf, selfSource[:s.Stop]...)
+	buf = append(buf, sourceSelf[:s.Stop]...)
 	buf = append(buf, []byte("\n\n"+text)...)
-	buf = append(buf, selfSource[s.Stop:]...)
-	selfSource = buf
+	buf = append(buf, sourceSelf[s.Stop:]...)
+	sourceSelf = buf
 
-	return selfSource
+	return sourceSelf
 }

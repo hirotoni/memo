@@ -150,7 +150,7 @@ func (app *App) InheritHeading(tb []byte, heading md.Heading) []byte {
 		pDoc := app.gmw.Parse(pb)
 
 		nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pDoc, pb, heading)
-		tb = app.gmw.InsertAfter(tDoc, targetHeader, nodesToInsert, tb, pb)
+		tb = app.gmw.InsertNodesAfter(tDoc, targetHeader, nodesToInsert, tb, pb)
 		break
 	}
 
