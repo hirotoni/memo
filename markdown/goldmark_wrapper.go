@@ -155,7 +155,14 @@ func (gmw *GoldmarkWrapper) InsertAfter(self ast.Node, target ast.Node, insertee
 	return selfSource
 }
 
-func (gmw *GoldmarkWrapper) InsertTextAfter(self ast.Node, target ast.Node, text string, selfSource []byte) []byte {
+func (gmw *GoldmarkWrapper) InsertTextAfter(selfSource []byte, targetHeading Heading, text string) []byte {
+	doc := gmw.Parse(selfSource)
+	targetHeader := gmw.GetHeadingNode(doc, selfSource, targetHeading)
+	selfSource = gmw.insertTextAfter(selfSource, targetHeader, text)
+	return selfSource
+}
+
+func (gmw *GoldmarkWrapper) insertTextAfter(selfSource []byte, target ast.Node, text string) []byte {
 	s := target.Lines().At(0)
 
 	buf := []byte{}
