@@ -11,10 +11,8 @@ type Heading struct {
 	text  string
 }
 
-type Headings []Heading
-
 type Template struct {
-	Headings
+	Headings []Heading
 }
 
 func (t *Template) String() string {
