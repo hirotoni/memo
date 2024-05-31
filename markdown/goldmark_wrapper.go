@@ -64,7 +64,7 @@ func (gmw *GoldmarkWrapper) GetHeadingNodes(doc ast.Node, source []byte, level i
 	return foundNodes
 }
 
-func (gmw *GoldmarkWrapper) GetHeadingNode(doc ast.Node, source []byte, text string, level int) ast.Node {
+func (gmw *GoldmarkWrapper) GetHeadingNode(doc ast.Node, source []byte, heading Heading) ast.Node {
 	// TODO define (text, level) type struct
 
 	document := doc.OwnerDocument()
@@ -75,8 +75,8 @@ func (gmw *GoldmarkWrapper) GetHeadingNode(doc ast.Node, source []byte, text str
 	var foundNode ast.Node
 	for c := document.FirstChild(); c != nil; c = c.NextSibling() {
 		if c.Kind() == ast.KindHeading {
-			levelMatched := c.(*ast.Heading).Level == level
-			textMatched := strings.Contains(string(c.Text(source)), text)
+			levelMatched := c.(*ast.Heading).Level == heading.Level
+			textMatched := strings.Contains(string(c.Text(source)), heading.Text)
 			if levelMatched && textMatched {
 				foundNode = c
 				break
@@ -87,7 +87,7 @@ func (gmw *GoldmarkWrapper) GetHeadingNode(doc ast.Node, source []byte, text str
 }
 
 // FindHeadingAndGetHangingNodes finds a heading that matches given text and level, then returns the hanging nodes of the heading
-func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(doc ast.Node, source []byte, text string, level int) []ast.Node {
+func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(doc ast.Node, source []byte, heading Heading) []ast.Node {
 	// TODO define (text, level) type struct
 
 	document := doc.OwnerDocument()
@@ -108,13 +108,13 @@ loop:
 		if c.Kind() == ast.KindHeading {
 			switch mode {
 			case modeSearching:
-				levelMatched := c.(*ast.Heading).Level == level
-				textMatched := strings.Contains(string(c.Text(source)), text)
+				levelMatched := c.(*ast.Heading).Level == heading.Level
+				textMatched := strings.Contains(string(c.Text(source)), heading.Text)
 				if levelMatched && textMatched {
 					mode = modeExiting
 				}
 			case modeExiting:
-				if c.(*ast.Heading).Level <= level {
+				if c.(*ast.Heading).Level <= heading.Level {
 					break loop
 				} else {
 					resultNodes = append(resultNodes, c)

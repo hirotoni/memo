@@ -6,13 +6,8 @@ import (
 	md "github.com/hirotoni/memo/markdown"
 )
 
-type Heading struct {
-	Level int
-	Text  string
-}
-
 type Template struct {
-	Headings []Heading
+	Headings []md.Heading
 }
 
 func (t *Template) String() string {
@@ -27,17 +22,17 @@ func (t *Template) String() string {
 }
 
 var (
-	HEADING_NAME_TITLE     = Heading{Level: 1, Text: "daily memo"}
-	HEADING_NAME_TODOS     = Heading{Level: 2, Text: "todos"}
-	HEADING_NAME_WANTTODOS = Heading{Level: 2, Text: "wanttodos"}
-	HEADING_NAME_MEMOS     = Heading{Level: 2, Text: "memos"}
+	HEADING_NAME_TITLE     = md.Heading{Level: 1, Text: "daily memo"}
+	HEADING_NAME_TODOS     = md.Heading{Level: 2, Text: "todos"}
+	HEADING_NAME_WANTTODOS = md.Heading{Level: 2, Text: "wanttodos"}
+	HEADING_NAME_MEMOS     = md.Heading{Level: 2, Text: "memos"}
 
-	HEADING_NAME_TIPSINDEX = Heading{Level: 1, Text: "Tips Index"}
+	HEADING_NAME_TIPSINDEX = md.Heading{Level: 1, Text: "Tips Index"}
 )
 
 var (
 	TemplateDailymemo = Template{
-		Headings: []Heading{
+		Headings: []md.Heading{
 			HEADING_NAME_TITLE,
 			HEADING_NAME_TODOS,
 			HEADING_NAME_WANTTODOS,
@@ -45,14 +40,14 @@ var (
 		},
 	}
 	TemplateTips = Template{
-		Headings: []Heading{
+		Headings: []md.Heading{
 			{Level: 1, Text: "sushi (<- CATEGORY NAME HERE)"},
 			{Level: 2, Text: "how to eat sushi (<- YOUR TIPS HERE)"},
 			{Level: 2, Text: "how to roll sushi (<- ANOTHER RELATED TIPS HERE)"},
 		},
 	}
 	TemplateTipsIndex = Template{
-		Headings: []Heading{
+		Headings: []md.Heading{
 			HEADING_NAME_TIPSINDEX,
 		},
 	}
