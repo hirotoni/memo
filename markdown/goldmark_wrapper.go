@@ -47,13 +47,10 @@ func (gmw *GoldmarkWrapper) Render(writer io.Writer, input []byte, doc ast.Node)
 	return nil
 }
 
-func (gmw *GoldmarkWrapper) GetHeadingNodes(doc ast.Node, source []byte, level int) []ast.Node {
-	document := doc.OwnerDocument()
-	if document == nil {
-		return nil
-	}
+func (gmw *GoldmarkWrapper) GetHeadingNodes(source []byte, level int) (ast.Node, []ast.Node) {
+	doc := gmw.Parse(source)
 	var foundNodes []ast.Node
-	for c := document.FirstChild(); c != nil; c = c.NextSibling() {
+	for c := doc.FirstChild(); c != nil; c = c.NextSibling() {
 		if c.Kind() == ast.KindHeading {
 			levelMatched := c.(*ast.Heading).Level == level
 			if levelMatched {
@@ -61,17 +58,14 @@ func (gmw *GoldmarkWrapper) GetHeadingNodes(doc ast.Node, source []byte, level i
 			}
 		}
 	}
-	return foundNodes
+	return doc, foundNodes
 }
 
-func (gmw *GoldmarkWrapper) GetHeadingNode(doc ast.Node, source []byte, heading Heading) ast.Node {
-	document := doc.OwnerDocument()
-	if document == nil {
-		return nil
-	}
+func (gmw *GoldmarkWrapper) GetHeadingNode(source []byte, heading Heading) (ast.Node, ast.Node) {
+	doc := gmw.Parse(source)
 
 	var foundNode ast.Node
-	for c := document.FirstChild(); c != nil; c = c.NextSibling() {
+	for c := doc.FirstChild(); c != nil; c = c.NextSibling() {
 		if c.Kind() == ast.KindHeading {
 			levelMatched := c.(*ast.Heading).Level == heading.Level
 			textMatched := strings.Contains(string(c.Text(source)), heading.Text)
@@ -81,15 +75,12 @@ func (gmw *GoldmarkWrapper) GetHeadingNode(doc ast.Node, source []byte, heading 
 			}
 		}
 	}
-	return foundNode
+	return doc, foundNode
 }
 
 // FindHeadingAndGetHangingNodes finds a heading that matches given text and level, then returns the hanging nodes of the heading
-func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(doc ast.Node, source []byte, heading Heading) []ast.Node {
-	document := doc.OwnerDocument()
-	if document == nil {
-		return nil
-	}
+func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(source []byte, heading Heading) []ast.Node {
+	doc := gmw.Parse(source)
 
 	const (
 		modeSearching = iota
@@ -130,9 +121,11 @@ loop:
 }
 
 // InsertNodesAfter inserts nodes to document at target position, and returns updated byte array of document as the result of the insert operation
-func (gmw *GoldmarkWrapper) InsertNodesAfter(doc ast.Node, targetNode ast.Node, nodesToInsert []ast.Node, sourceSelf, sourceNodesToInsert []byte) []byte {
+func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading Heading, sourceNodesToInsert []byte, nodesToInsert []ast.Node) []byte {
 	// insert from tail nodes
 	slices.Reverse(nodesToInsert)
+
+	doc, targetNode := gmw.GetHeadingNode(sourceSelf, targetHeading)
 
 	for _, n := range nodesToInsert {
 		doc.InsertAfter(doc, targetNode, n)
@@ -152,8 +145,7 @@ func (gmw *GoldmarkWrapper) InsertNodesAfter(doc ast.Node, targetNode ast.Node, 
 }
 
 func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading Heading, text string) []byte {
-	doc := gmw.Parse(sourceSelf)
-	targetHeaderNode := gmw.GetHeadingNode(doc, sourceSelf, targetHeading)
+	_, targetHeaderNode := gmw.GetHeadingNode(sourceSelf, targetHeading)
 
 	s := targetHeaderNode.Lines().At(0)
 

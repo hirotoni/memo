@@ -129,10 +129,6 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 
 // InheritHeading inherits todos from previous day's memo
 func (app *App) InheritHeading(tb []byte, heading md.Heading) []byte {
-	// today
-	tDoc := app.gmw.Parse(tb)
-	targetHeader := app.gmw.GetHeadingNode(tDoc, tb, heading)
-
 	// previous days
 	today := time.Now()
 	for i := range make([]int, DAYS_TO_SEEK) {
@@ -147,10 +143,8 @@ func (app *App) InheritHeading(tb []byte, heading md.Heading) []byte {
 			log.Fatal(err)
 		}
 
-		pDoc := app.gmw.Parse(pb)
-
-		nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pDoc, pb, heading)
-		tb = app.gmw.InsertNodesAfter(tDoc, targetHeader, nodesToInsert, tb, pb)
+		nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pb, heading)
+		tb = app.gmw.InsertNodesAfter(tb, heading, pb, nodesToInsert)
 		break
 	}
 
@@ -194,8 +188,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 		if err != nil {
 			log.Fatal(err)
 		}
-		doc := app.gmw.Parse(b)
-		headings := app.gmw.GetHeadingNodes(doc, b, 2)
+		_, headings := app.gmw.GetHeadingNodes(b, 2)
 
 		relpath, err := filepath.Rel(app.config.DailymemoDir(), v)
 		if err != nil {
@@ -332,8 +325,7 @@ func (app *App) WeeklyReport() {
 			log.Fatal(err)
 		}
 
-		doc := app.gmw.Parse(b)
-		hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(doc, b, HEADING_NAME_MEMOS)
+		hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(b, HEADING_NAME_MEMOS)
 
 		var order = 0
 		for _, node := range hangingNodes {
