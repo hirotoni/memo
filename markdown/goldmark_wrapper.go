@@ -65,8 +65,6 @@ func (gmw *GoldmarkWrapper) GetHeadingNodes(doc ast.Node, source []byte, level i
 }
 
 func (gmw *GoldmarkWrapper) GetHeadingNode(doc ast.Node, source []byte, heading Heading) ast.Node {
-	// TODO define (text, level) type struct
-
 	document := doc.OwnerDocument()
 	if document == nil {
 		return nil
@@ -88,8 +86,6 @@ func (gmw *GoldmarkWrapper) GetHeadingNode(doc ast.Node, source []byte, heading 
 
 // FindHeadingAndGetHangingNodes finds a heading that matches given text and level, then returns the hanging nodes of the heading
 func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(doc ast.Node, source []byte, heading Heading) []ast.Node {
-	// TODO define (text, level) type struct
-
 	document := doc.OwnerDocument()
 	if document == nil {
 		return nil

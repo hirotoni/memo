@@ -159,8 +159,6 @@ func (app *App) InheritHeading(tb []byte, heading md.Heading) []byte {
 
 // AppendTips appends tips
 func (app *App) AppendTips(tb []byte) []byte {
-	// not yet fully implemented
-
 	// tips are the things that you want to remember periodically such as
 	// - ER diagrams, component diagrams, constants of application you are in charge
 	// - product management, development process knowledge
