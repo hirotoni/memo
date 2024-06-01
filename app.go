@@ -215,27 +215,20 @@ func (app *App) AppendTips(tb []byte) []byte {
 }
 
 func (app *App) WeeklyReport() {
-	e, err := os.ReadDir(app.config.DailymemoDir())
+	entries, err := os.ReadDir(app.config.DailymemoDir())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	wantfiles := []string{}
 	reg := regexp.MustCompile(LAYOUT_REGEX)
-	for _, file := range e {
+	for _, file := range entries {
 		if reg.MatchString(file.Name()) {
 			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir(), file.Name()))
 		}
 	}
 
-	f, err := os.Create(filepath.Join(app.config.WeeklyReportFile()))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	f.WriteString("# Weekly Report\n\n")
-
+	sb := strings.Builder{}
 	var curWeekNum int
 	for _, fpath := range wantfiles {
 
@@ -251,11 +244,11 @@ func (app *App) WeeklyReport() {
 
 		year, week := date.ISOWeek()
 		if curWeekNum != week {
-			f.WriteString("## " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n")
+			sb.WriteString("## " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n")
 			curWeekNum = week
 		}
 
-		f.WriteString("### " + filepath.Base(fpath) + "\n\n")
+		sb.WriteString("### " + filepath.Base(fpath) + "\n\n")
 
 		b, err := os.ReadFile(fpath)
 		if err != nil {
@@ -276,14 +269,23 @@ func (app *App) WeeklyReport() {
 				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
 				tag := md.Text2tag(string(node.Text(b)))
 				s := md.BuildOrderedList(order, md.BuildLink(title, relpath+"#"+tag)) + "\n"
-				f.WriteString(s)
+				sb.WriteString(s)
 			}
 		}
 
 		if order > 0 {
-			f.WriteString("\n")
+			sb.WriteString("\n")
 		}
 	}
+
+	f, err := os.Create(app.config.WeeklyReportFile())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	f.WriteString(TemplateWeeklyReport.String() + "\n")
+	f.WriteString(sb.String())
 }
 
 type Tip struct {

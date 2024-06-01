@@ -22,11 +22,16 @@ func (t *Template) String() string {
 }
 
 var (
+	// daily memo
 	HEADING_NAME_TITLE     = md.Heading{Level: 1, Text: "daily memo"}
 	HEADING_NAME_TODOS     = md.Heading{Level: 2, Text: "todos"}
 	HEADING_NAME_WANTTODOS = md.Heading{Level: 2, Text: "wanttodos"}
 	HEADING_NAME_MEMOS     = md.Heading{Level: 2, Text: "memos"}
 
+	// weekly report
+	HEADING_NAME_WEEKLYREPORT = md.Heading{Level: 1, Text: "Weekly Report"}
+
+	// tips index
 	HEADING_NAME_TIPSINDEX = md.Heading{Level: 1, Text: "Tips Index"}
 )
 
@@ -37,6 +42,11 @@ var (
 			HEADING_NAME_TODOS,
 			HEADING_NAME_WANTTODOS,
 			HEADING_NAME_MEMOS,
+		},
+	}
+	TemplateWeeklyReport = Template{
+		Headings: []md.Heading{
+			HEADING_NAME_WEEKLYREPORT,
 		},
 	}
 	TemplateTips = Template{
