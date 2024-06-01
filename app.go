@@ -159,63 +159,11 @@ func (app *App) AppendTips(tb []byte) []byte {
 	// - bookmarks, web links
 	// - life sayings, someone's sayings
 
-	var targetTipFiles []string
-	var allTipsNotShown []Tip
-	var allTipsShown []Tip
-	var tipsToIndex []string
-
+	// indexed tips
 	var indexTipsShown = filter(app.getTipsFromIndex(), func(t Tip) bool { return t.Checked })
 
-	var fn = func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() || path == app.config.TipsTemplateFile() {
-			return nil
-		}
-
-		targetTipFiles = append(targetTipFiles, path)
-		return nil
-	}
-
-	if err := filepath.Walk(app.config.TipsDir(), fn); err != nil {
-		log.Fatal(err)
-	}
-
-	for _, v := range targetTipFiles {
-		b, err := os.ReadFile(v)
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, headings := app.gmw.GetHeadingNodes(b, 2)
-
-		relpath, err := filepath.Rel(app.config.DailymemoDir(), v)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for _, vv := range headings {
-			title := string(vv.Text(b))
-			destination := relpath + "#" + md.Text2tag(title)
-			checked := slices.ContainsFunc(indexTipsShown, func(t Tip) bool { return t.Destination == destination })
-
-			tip := Tip{
-				Text:        title,
-				Destination: destination,
-				Checked:     checked,
-			}
-
-			if tip.Checked {
-				allTipsShown = append(allTipsShown, tip)
-			} else {
-				allTipsNotShown = append(allTipsNotShown, tip)
-			}
-		}
-	}
-
-	// log.Default().Println(allTipsShown)
-	// log.Default().Println(allTipsNotShown)
-	// log.Default().Println(indexTipsShown)
+	// all tips from tips dir
+	var allTipsShown, allTipsNotShown = app.getTipsFromDir(indexTipsShown)
 
 	// if all tips have been shown, then reset
 	if len(allTipsNotShown) == 0 {
@@ -230,26 +178,15 @@ func (app *App) AppendTips(tb []byte) []byte {
 
 	// pick one
 	chosen := rand.Intn(len(allTipsNotShown))
+	allTipsNotShown[chosen].Checked = true
 
 	// insert todays tip
 	chosenTip := md.BuildList(md.BuildLink(allTipsNotShown[chosen].Text, allTipsNotShown[chosen].Destination))
 	tb = app.gmw.InsertTextAfter(tb, HEADING_NAME_TITLE, chosenTip)
 
-	// groom tips to index
-	var groom []Tip
-	for i, v := range allTipsNotShown {
-		if i == chosen {
-			v.Checked = true
-		}
-		groom = append(groom, v)
-	}
-
-	for _, v := range allTipsShown {
-		v.Checked = true
-		groom = append(groom, v)
-	}
-
-	slices.SortFunc(groom, func(a, b Tip) int {
+	// create index of all tips
+	allTips := append(allTipsNotShown, allTipsShown...)
+	slices.SortFunc(allTips, func(a, b Tip) int {
 		if a.Destination < b.Destination {
 			return -1
 		} else {
@@ -257,7 +194,8 @@ func (app *App) AppendTips(tb []byte) []byte {
 		}
 	})
 
-	for _, v := range groom {
+	var tipsToIndex []string
+	for _, v := range allTips {
 		index := md.BuildCheckbox(md.BuildLink(v.Text, v.Destination), v.Checked) + "\n"
 		tipsToIndex = append(tipsToIndex, index)
 	}
@@ -271,7 +209,6 @@ func (app *App) AppendTips(tb []byte) []byte {
 
 	tipsb := []byte(TemplateTipsIndex.String())
 	tipsb = app.gmw.InsertTextAfter(tipsb, HEADING_NAME_TIPSINDEX, strings.Join(tipsToIndex, ""))
-
 	f.Write(tipsb)
 
 	return tb
@@ -389,6 +326,61 @@ func (app *App) getTipsFromIndex() []Tip {
 	}
 
 	return tips
+}
+
+func (app *App) getTipsFromDir(indexTipsShown []Tip) ([]Tip, []Tip) {
+	var allTipsShown []Tip
+	var allTipsNotShown []Tip
+	for _, v := range app.getTipFilePaths() {
+		b, err := os.ReadFile(v)
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, headings := app.gmw.GetHeadingNodesByLevel(b, 2)
+
+		relpath, err := filepath.Rel(app.config.DailymemoDir(), v)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, vv := range headings {
+			title := string(vv.Text(b))
+			destination := relpath + "#" + md.Text2tag(title)
+			checked := slices.ContainsFunc(indexTipsShown, func(t Tip) bool { return t.Destination == destination })
+
+			tip := Tip{
+				Text:        title,
+				Destination: destination,
+				Checked:     checked,
+			}
+
+			if tip.Checked {
+				allTipsShown = append(allTipsShown, tip)
+			} else {
+				allTipsNotShown = append(allTipsNotShown, tip)
+			}
+		}
+	}
+	return allTipsShown, allTipsNotShown
+}
+
+func (app *App) getTipFilePaths() []string {
+	var targetTipFiles []string
+	var fn = func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() || path == app.config.TipsTemplateFile() {
+			return nil
+		}
+		targetTipFiles = append(targetTipFiles, path)
+		return nil
+	}
+
+	if err := filepath.Walk(app.config.TipsDir(), fn); err != nil {
+		log.Fatal(err)
+	}
+
+	return targetTipFiles
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {

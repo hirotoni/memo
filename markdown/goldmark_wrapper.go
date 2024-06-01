@@ -47,7 +47,7 @@ func (gmw *GoldmarkWrapper) Render(writer io.Writer, input []byte, doc ast.Node)
 	return nil
 }
 
-func (gmw *GoldmarkWrapper) GetHeadingNodes(source []byte, level int) (ast.Node, []ast.Node) {
+func (gmw *GoldmarkWrapper) GetHeadingNodesByLevel(source []byte, level int) (ast.Node, []ast.Node) {
 	doc := gmw.Parse(source)
 	var foundNodes []ast.Node
 	for c := doc.FirstChild(); c != nil; c = c.NextSibling() {
@@ -145,9 +145,9 @@ func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading He
 }
 
 func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading Heading, text string) []byte {
-	_, targetHeaderNode := gmw.GetHeadingNode(sourceSelf, targetHeading)
+	_, targetHeadingNode := gmw.GetHeadingNode(sourceSelf, targetHeading)
 
-	s := targetHeaderNode.Lines().At(0)
+	s := targetHeadingNode.Lines().At(0)
 
 	buf := []byte{}
 	buf = append(buf, sourceSelf[:s.Stop]...)
