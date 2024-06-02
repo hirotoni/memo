@@ -78,8 +78,8 @@ func (gmw *GoldmarkWrapper) GetHeadingNode(source []byte, heading Heading) (ast.
 	return doc, foundNode
 }
 
-// FindHeadingAndGetHangingNodes finds a heading that matches given text and level, then returns the hanging nodes of the heading
-func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(source []byte, heading Heading) []ast.Node {
+// FindHeadingAndGetHangingNodes finds a heading that matches given text and level, then returns the found heading and hanging nodes of the heading
+func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(source []byte, heading Heading) (ast.Node, []ast.Node) {
 	doc := gmw.Parse(source)
 
 	const (
@@ -87,8 +87,9 @@ func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(source []byte, heading
 		modeExiting
 	)
 
-	mode := modeSearching
-	resultNodes := []ast.Node{}
+	var foundHeading ast.Node
+	var resultNodes []ast.Node
+	var mode = modeSearching
 
 loop:
 	for c := doc.FirstChild(); c != nil; c = c.NextSibling() {
@@ -98,6 +99,7 @@ loop:
 				levelMatched := c.(*ast.Heading).Level == heading.Level
 				textMatched := strings.Contains(string(c.Text(source)), heading.Text)
 				if levelMatched && textMatched {
+					foundHeading = c
 					mode = modeExiting
 				}
 			case modeExiting:
@@ -117,7 +119,7 @@ loop:
 		}
 	}
 
-	return resultNodes
+	return foundHeading, resultNodes
 }
 
 // InsertNodesAfter inserts nodes to document at target position, and returns updated byte array of document as the result of the insert operation

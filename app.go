@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"math/rand"
 	"os"
@@ -13,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hirotoni/memo/markdown"
 	md "github.com/hirotoni/memo/markdown"
 	"github.com/yuin/goldmark/ast"
 	extast "github.com/yuin/goldmark/extension/ast"
@@ -143,7 +146,7 @@ func (app *App) InheritHeading(tb []byte, heading md.Heading) []byte {
 			log.Fatal(err)
 		}
 
-		nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pb, heading)
+		_, nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pb, heading)
 		tb = app.gmw.InsertNodesAfter(tb, heading, pb, nodesToInsert)
 		break
 	}
@@ -194,22 +197,9 @@ func (app *App) AppendTips(tb []byte) []byte {
 		}
 	})
 
-	var tipsToIndex []string
-	for _, v := range allTips {
-		index := md.BuildCheckbox(md.BuildLink(v.Text, v.Destination), v.Checked) + "\n"
-		tipsToIndex = append(tipsToIndex, index)
-	}
-
 	// write tips to index
-	f, err := os.Create(app.config.TipsIndexFile())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	tipsb := []byte(TemplateTipsIndex.String())
-	tipsb = app.gmw.InsertTextAfter(tipsb, HEADING_NAME_TIPSINDEX, strings.Join(tipsToIndex, ""))
-	f.Write(tipsb)
+	indexTipsShown = filter(allTips, func(t Tip) bool { return t.Checked })
+	app.SaveTipsIndex(indexTipsShown)
 
 	return tb
 }
@@ -255,7 +245,7 @@ func (app *App) WeeklyReport() {
 			log.Fatal(err)
 		}
 
-		hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(b, HEADING_NAME_MEMOS)
+		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(b, HEADING_NAME_MEMOS)
 
 		var order = 0
 		for _, node := range hangingNodes {
@@ -288,12 +278,6 @@ func (app *App) WeeklyReport() {
 	f.WriteString(sb.String())
 }
 
-type Tip struct {
-	Text        string
-	Destination string
-	Checked     bool
-}
-
 func (app *App) getTipsFromIndex() []Tip {
 	b, err := os.ReadFile(app.config.TipsIndexFile())
 	if err != nil {
@@ -316,6 +300,9 @@ func (app *App) getTipsFromIndex() []Tip {
 					if c, ok := c.(*extast.TaskCheckBox); ok {
 						t.Checked = c.IsChecked
 					}
+				}
+				if t.Text == "" && t.Destination == "" {
+					return ast.WalkContinue, nil
 				}
 				tips = append(tips, t)
 			}
@@ -392,4 +379,105 @@ func filter[T any](ts []T, test func(T) bool) (ret []T) {
 		}
 	}
 	return
+}
+
+func (app *App) SaveTipsIndex(shown []Tip) {
+	// TODO redundant with app.getTipsFromDir
+
+	var level int
+	var buf = &bytes.Buffer{}
+
+	err := filepath.WalkDir(app.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == app.config.TipsTemplateFile() || path == app.config.TipsIndexFile() {
+			return nil
+		}
+
+		relpath, err := filepath.Rel(app.config.DailymemoDir(), path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pathlist := strings.Split(relpath, string(filepath.Separator))
+		level = len(pathlist) - 3 // TODO avoid using magic number
+
+		if d.IsDir() {
+			if path == app.config.TipsDir() {
+				return nil
+			}
+
+			tmp := TipNode{
+				kind:  KIND_DIR,
+				text:  d.Name(),
+				depth: level,
+			}
+			tmp.Print(buf)
+
+		} else {
+			if filepath.Ext(d.Name()) == ".md" {
+				b, err := os.ReadFile(path)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				_, headings := app.gmw.GetHeadingNodesByLevel(b, 1)
+				if len(headings) == 0 {
+					return nil
+				}
+				heading := headings[0]
+				title, nodes := app.gmw.FindHeadingAndGetHangingNodes(b, md.Heading{Level: 1, Text: string(heading.Text(b))})
+
+				tmp := TipNode{
+					kind:  KIND_TITLE,
+					text:  string(title.Text(b)),
+					depth: level,
+					tip: Tip{
+						Text:        string(title.Text(b)),
+						Destination: relpath,
+					},
+				}
+				tmp.Print(buf)
+
+				for _, v := range nodes {
+					if hh, ok := v.(*ast.Heading); ok && hh.Level == 2 {
+
+						destination := relpath + "#" + markdown.Text2tag(string(hh.Text(b)))
+						checked := slices.ContainsFunc(shown, func(t Tip) bool {
+							return t.Destination == destination
+						})
+
+						tmp := TipNode{
+							kind:  KIND_TIP,
+							text:  string(hh.Text(b)),
+							depth: level + 1,
+							tip: Tip{
+								Text:        string(hh.Text(b)),
+								Destination: destination,
+								Checked:     checked,
+							},
+						}
+						tmp.Print(buf)
+					}
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Default().Println("\n" + buf.String())
+
+	// write tips to index
+	f, err := os.Create(app.config.TipsIndexFile())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	tipsb := []byte(TemplateTipsIndex.String())
+	tipsb = app.gmw.InsertTextAfter(tipsb, HEADING_NAME_TIPSINDEX, buf.String())
+	f.Write(tipsb)
 }
