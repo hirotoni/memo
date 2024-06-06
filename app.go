@@ -195,7 +195,7 @@ func (app *App) AppendTips(tb []byte) []byte {
 
 	// write tips to index
 	shown := filter(allTips, func(t TipNode) bool { return t.tip.Checked })
-	app.SaveTipsToIndex(shown)
+	app.saveTipsToIndex(shown)
 
 	return tb
 }
@@ -324,21 +324,6 @@ func (app *App) getTipsFromDir(indexTipsShown []Tip) ([]TipNode, []TipNode) {
 	return allTipsShown, allTipsNotShown
 }
 
-func filter[T any](ts []T, test func(T) bool) (ret []T) {
-	for _, s := range ts {
-		if test(s) {
-			ret = append(ret, s)
-		}
-	}
-	return
-}
-
-func randomPick[T any](s []T) (T, []T) {
-	i := rand.Intn(len(s))
-	picked := s[i]
-	return picked, append(s[:i], s[i+1:]...)
-}
-
 func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
 	var tns []TipNode
 
@@ -422,7 +407,7 @@ func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
 	return tns
 }
 
-func (app *App) SaveTipsToIndex(shown []TipNode) {
+func (app *App) saveTipsToIndex(shown []TipNode) {
 	// TODO redundant with app.getTipNodesFromDir
 
 	var depth int
@@ -531,4 +516,19 @@ func (app *App) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
 
 	return heading1, heading2s
 
+}
+
+func filter[T any](ts []T, test func(T) bool) (ret []T) {
+	for _, s := range ts {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
+}
+
+func randomPick[T any](s []T) (T, []T) {
+	i := rand.Intn(len(s))
+	picked := s[i]
+	return picked, append(s[:i], s[i+1:]...)
 }
