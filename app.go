@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotoni/memo/markdown"
 	md "github.com/hirotoni/memo/markdown"
 	"github.com/yuin/goldmark/ast"
 	extast "github.com/yuin/goldmark/extension/ast"
@@ -170,36 +169,33 @@ func (app *App) AppendTips(tb []byte) []byte {
 
 	// if all tips have been shown, then reset
 	if len(allTipsNotShown) == 0 {
-		var tmp []Tip
+		var tmp []TipNode
 		for _, v := range allTipsShown {
-			v.Checked = false
+			v.tip.Checked = false
 			tmp = append(tmp, v)
 		}
 		allTipsNotShown = tmp
-		allTipsShown = []Tip{}
+		allTipsShown = []TipNode{}
 	}
 
 	// pick one
-	chosen := rand.Intn(len(allTipsNotShown))
-	allTipsNotShown[chosen].Checked = true
+	picked, allTipsNotShown := randomPick(allTipsNotShown)
+	picked.tip.Checked = true
+	allTipsShown = append(allTipsShown, picked)
 
 	// insert todays tip
-	chosenTip := md.BuildList(md.BuildLink(allTipsNotShown[chosen].Text, allTipsNotShown[chosen].Destination))
+	chosenTip := md.BuildList(md.BuildLink(
+		picked.tip.Text,
+		picked.tip.Destination,
+	))
 	tb = app.gmw.InsertTextAfter(tb, HEADING_NAME_TITLE, chosenTip)
 
 	// create index of all tips
 	allTips := append(allTipsNotShown, allTipsShown...)
-	slices.SortFunc(allTips, func(a, b Tip) int {
-		if a.Destination < b.Destination {
-			return -1
-		} else {
-			return 1
-		}
-	})
 
 	// write tips to index
-	indexTipsShown = filter(allTips, func(t Tip) bool { return t.Checked })
-	app.SaveTipsIndex(indexTipsShown)
+	shown := filter(allTips, func(t TipNode) bool { return t.tip.Checked })
+	app.SaveTipsToIndex(shown)
 
 	return tb
 }
@@ -317,59 +313,15 @@ func (app *App) getTipsFromIndex() []Tip {
 	return tips
 }
 
-func (app *App) getTipsFromDir(indexTipsShown []Tip) ([]Tip, []Tip) {
-	var allTipsShown []Tip
-	var allTipsNotShown []Tip
-	for _, v := range app.getTipFilePaths() {
-		b, err := os.ReadFile(v)
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, headings := app.gmw.GetHeadingNodesByLevel(b, 2)
+func (app *App) getTipsFromDir(indexTipsShown []Tip) ([]TipNode, []TipNode) {
+	var allTipsShown []TipNode
+	var allTipsNotShown []TipNode
 
-		relpath, err := filepath.Rel(app.config.DailymemoDir(), v)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for _, vv := range headings {
-			title := string(vv.Text(b))
-			destination := relpath + "#" + md.Text2tag(title)
-			checked := slices.ContainsFunc(indexTipsShown, func(t Tip) bool { return t.Destination == destination })
+	tns := app.getTipNodesFromDir(indexTipsShown)
 
-			tip := Tip{
-				Text:        title,
-				Destination: destination,
-				Checked:     checked,
-			}
-
-			if tip.Checked {
-				allTipsShown = append(allTipsShown, tip)
-			} else {
-				allTipsNotShown = append(allTipsNotShown, tip)
-			}
-		}
-	}
+	allTipsShown = filter(tns, func(tn TipNode) bool { return tn.kind == KIND_TIP && tn.tip.Checked })
+	allTipsNotShown = filter(tns, func(tn TipNode) bool { return tn.kind == KIND_TIP && !tn.tip.Checked })
 	return allTipsShown, allTipsNotShown
-}
-
-func (app *App) getTipFilePaths() []string {
-	var targetTipFiles []string
-	var fn = func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() || path == app.config.TipsTemplateFile() {
-			return nil
-		}
-		targetTipFiles = append(targetTipFiles, path)
-		return nil
-	}
-
-	if err := filepath.Walk(app.config.TipsDir(), fn); err != nil {
-		log.Fatal(err)
-	}
-
-	return targetTipFiles
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {
@@ -381,10 +333,99 @@ func filter[T any](ts []T, test func(T) bool) (ret []T) {
 	return
 }
 
-func (app *App) SaveTipsIndex(shown []Tip) {
-	// TODO redundant with app.getTipsFromDir
+func randomPick[T any](s []T) (T, []T) {
+	i := rand.Intn(len(s))
+	picked := s[i]
+	return picked, append(s[:i], s[i+1:]...)
+}
 
-	var level int
+func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
+	var tns []TipNode
+
+	err := filepath.WalkDir(app.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == app.config.TipsTemplateFile() || path == app.config.TipsIndexFile() {
+			return nil
+		}
+
+		relpath, err := filepath.Rel(app.config.DailymemoDir(), path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pathlist := strings.Split(relpath, string(filepath.Separator))
+		depth := len(pathlist) - 3 // TODO avoid using magic number
+
+		if d.IsDir() {
+			if path == app.config.TipsDir() {
+				return nil
+			}
+
+			tmp := TipNode{
+				kind:  KIND_DIR,
+				text:  d.Name(),
+				depth: depth,
+			}
+			tns = append(tns, tmp)
+
+		} else {
+			if filepath.Ext(d.Name()) == ".md" {
+				b, err := os.ReadFile(path)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				h1, h2s := app.getTipsHeadings(b)
+				if h1 == nil || h2s == nil {
+					return nil
+				}
+
+				tmp := TipNode{
+					kind:  KIND_TITLE,
+					text:  string(h1.Text(b)),
+					depth: depth,
+					tip: Tip{
+						Text:        string(h1.Text(b)),
+						Destination: relpath,
+					},
+				}
+				tns = append(tns, tmp)
+
+				for _, h2 := range h2s {
+					destination := relpath + "#" + md.Text2tag(string(h2.Text(b)))
+					checked := slices.ContainsFunc(shown, func(t Tip) bool {
+						return t.Destination == destination
+					})
+
+					tmp := TipNode{
+						kind:  KIND_TIP,
+						text:  string(h2.Text(b)),
+						depth: depth + 1,
+						tip: Tip{
+							Text:        string(h2.Text(b)),
+							Destination: destination,
+							Checked:     checked,
+						},
+					}
+					tns = append(tns, tmp)
+				}
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return tns
+}
+
+func (app *App) SaveTipsToIndex(shown []TipNode) {
+	// TODO redundant with app.getTipNodesFromDir
+
+	var depth int
 	var buf = &bytes.Buffer{}
 
 	err := filepath.WalkDir(app.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
@@ -400,7 +441,7 @@ func (app *App) SaveTipsIndex(shown []Tip) {
 			log.Fatal(err)
 		}
 		pathlist := strings.Split(relpath, string(filepath.Separator))
-		level = len(pathlist) - 3 // TODO avoid using magic number
+		depth = len(pathlist) - 3 // TODO avoid using magic number
 
 		if d.IsDir() {
 			if path == app.config.TipsDir() {
@@ -410,7 +451,7 @@ func (app *App) SaveTipsIndex(shown []Tip) {
 			tmp := TipNode{
 				kind:  KIND_DIR,
 				text:  d.Name(),
-				depth: level,
+				depth: depth,
 			}
 			tmp.Print(buf)
 
@@ -421,44 +462,39 @@ func (app *App) SaveTipsIndex(shown []Tip) {
 					log.Fatal(err)
 				}
 
-				_, headings := app.gmw.GetHeadingNodesByLevel(b, 1)
-				if len(headings) == 0 {
+				h1, h2s := app.getTipsHeadings(b)
+				if h1 == nil || h2s == nil {
 					return nil
 				}
-				heading := headings[0]
-				title, nodes := app.gmw.FindHeadingAndGetHangingNodes(b, md.Heading{Level: 1, Text: string(heading.Text(b))})
 
 				tmp := TipNode{
 					kind:  KIND_TITLE,
-					text:  string(title.Text(b)),
-					depth: level,
+					text:  string(h1.Text(b)),
+					depth: depth,
 					tip: Tip{
-						Text:        string(title.Text(b)),
+						Text:        string(h1.Text(b)),
 						Destination: relpath,
 					},
 				}
 				tmp.Print(buf)
 
-				for _, v := range nodes {
-					if hh, ok := v.(*ast.Heading); ok && hh.Level == 2 {
+				for _, h2 := range h2s {
+					destination := relpath + "#" + md.Text2tag(string(h2.Text(b)))
+					checked := slices.ContainsFunc(shown, func(t TipNode) bool {
+						return t.tip.Destination == destination
+					})
 
-						destination := relpath + "#" + markdown.Text2tag(string(hh.Text(b)))
-						checked := slices.ContainsFunc(shown, func(t Tip) bool {
-							return t.Destination == destination
-						})
-
-						tmp := TipNode{
-							kind:  KIND_TIP,
-							text:  string(hh.Text(b)),
-							depth: level + 1,
-							tip: Tip{
-								Text:        string(hh.Text(b)),
-								Destination: destination,
-								Checked:     checked,
-							},
-						}
-						tmp.Print(buf)
+					tmp := TipNode{
+						kind:  KIND_TIP,
+						text:  string(h2.Text(b)),
+						depth: depth + 1,
+						tip: Tip{
+							Text:        string(h2.Text(b)),
+							Destination: destination,
+							Checked:     checked,
+						},
 					}
+					tmp.Print(buf)
 				}
 			}
 		}
@@ -467,8 +503,6 @@ func (app *App) SaveTipsIndex(shown []Tip) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Default().Println("\n" + buf.String())
 
 	// write tips to index
 	f, err := os.Create(app.config.TipsIndexFile())
@@ -480,4 +514,21 @@ func (app *App) SaveTipsIndex(shown []Tip) {
 	tipsb := []byte(TemplateTipsIndex.String())
 	tipsb = app.gmw.InsertTextAfter(tipsb, HEADING_NAME_TIPSINDEX, buf.String())
 	f.Write(tipsb)
+}
+
+func (app *App) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
+	_, headings := app.gmw.GetHeadingNodesByLevel(b, 1)
+	if len(headings) == 0 {
+		return nil, nil
+	}
+	heading := headings[0]
+	heading1, nodes := app.gmw.FindHeadingAndGetHangingNodes(b, md.Heading{Level: 1, Text: string(heading.Text(b))})
+
+	heading2s := filter(nodes, func(n ast.Node) bool {
+		h, ok := n.(*ast.Heading)
+		return ok && h.Level == 2
+	})
+
+	return heading1, heading2s
+
 }
