@@ -1,6 +1,10 @@
+# build output
 memo
 
+# local config files
 .env
 .vscode
+.go-version
 
+# misc
 .DS_Store
