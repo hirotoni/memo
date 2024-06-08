@@ -43,6 +43,11 @@ func NewAppConfig() AppConfig {
 
 	v, found := os.LookupEnv(ENV_NAME_DEFAULT_BASE_DIR)
 	if found {
+		if v == "" {
+			log.Printf("the directory specified by $%s is empty. Using default value(%s).", ENV_NAME_DEFAULT_BASE_DIR, ac.BaseDir())
+			return ac
+		}
+
 		if _, err := os.Stat(v); errors.Is(err, os.ErrNotExist) {
 			log.Printf("the directory specified by $%s(%s) does not exist. Using default value(%s).", ENV_NAME_DEFAULT_BASE_DIR, v, ac.BaseDir())
 			return ac
