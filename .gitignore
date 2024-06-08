@@ -2,7 +2,7 @@
 memo
 
 # local config files
-# .env
+.env
 .vscode
 .go-version
 
