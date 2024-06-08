@@ -6,6 +6,6 @@ help: ## Prints help for targets with comments
 create: ## Create today's memo
 	go run .
 
-.PHONY: trun-create
-trun-create: ## Truncate and create today's memo
+.PHONY: create-truncate
+create-truncate: ## Create today's memo while truncating it if the file already exists
 	go run . --truncate
