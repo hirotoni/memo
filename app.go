@@ -167,6 +167,11 @@ func (app *App) AppendTips(tb []byte) []byte {
 	// all tips from tips dir
 	var allTipsShown, allTipsNotShown = app.getTipsFromDir(indexTipsShown)
 
+	if len(allTipsNotShown) == 0 && len(allTipsShown) == 0 {
+		log.Fatal("no tips found.")
+		return tb
+	}
+
 	// if all tips have been shown, then reset
 	if len(allTipsNotShown) == 0 {
 		var tmp []TipNode
