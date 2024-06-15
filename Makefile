@@ -4,8 +4,8 @@ help: ## Prints help for targets with comments
 
 .PHONY: create
 create: ## Create today's memo
-	go run .
+	go run . create
 
 .PHONY: create-truncate
-create-truncate: ## Create today's memo while truncating it if the file already exists
-	go run . --truncate
+create-truncate: ## Truncate and create today's memo
+	go run . create --truncate
