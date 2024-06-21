@@ -17,9 +17,12 @@ var (
 	_weekly = flag.NewFlagSet("weekly", flag.ExitOnError)
 
 	// Subcommand descriptions
-	SUBCOMMANDS = map[*flag.FlagSet]string{
-		_create: "create today's memo",
-		_weekly: "generate weekly report",
+	SUBCOMMANDS = []struct {
+		subcommand *flag.FlagSet
+		desc       string
+	}{
+		{_create, "create today's memo"},
+		{_weekly, "generate weekly report"},
 	}
 )
 
@@ -43,9 +46,9 @@ func init() {
 		sb.WriteString(" [subcommand] [flags]\n")
 		sb.WriteString("\n")
 		sb.WriteString("Subcommands:\n")
-		for sc, desc := range SUBCOMMANDS {
+		for _, sc := range SUBCOMMANDS {
 			sb.WriteString("  ")
-			sb.WriteString(sc.Name() + "\t" + desc + "\n")
+			sb.WriteString(sc.subcommand.Name() + "\t" + sc.desc + "\n")
 		}
 		sb.WriteString("\n")
 		sb.WriteString("\n")
@@ -55,26 +58,26 @@ func init() {
 		sb.WriteString("\n")
 		fmt.Fprintf(flag.CommandLine.Output(), sb.String())
 	}
-	for sc, desc := range SUBCOMMANDS {
-		sc.Usage = func() {
+	for _, sc := range SUBCOMMANDS {
+		sc.subcommand.Usage = func() {
 			sb := strings.Builder{}
 			sb.WriteString("\n")
-			sb.WriteString("Subcommand: " + sc.Name())
+			sb.WriteString("Subcommand: " + sc.subcommand.Name())
 			sb.WriteString("\n")
 			sb.WriteString("  ")
-			sb.WriteString(desc)
+			sb.WriteString(sc.desc)
 			sb.WriteString("\n")
 			sb.WriteString("\n")
 			sb.WriteString("Flags:\n")
 
 			var c int
-			sc.VisitAll(func(f *flag.Flag) {
+			sc.subcommand.VisitAll(func(f *flag.Flag) {
 				c++
 			})
 			if c == 0 {
 				sb.WriteString("  No flags for this subcommand\n")
 			} else {
-				sc.VisitAll(func(f *flag.Flag) {
+				sc.subcommand.VisitAll(func(f *flag.Flag) {
 					if f == nil {
 						sb.WriteString("  No flags for this subcommand\n")
 					}
