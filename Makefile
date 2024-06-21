@@ -9,3 +9,7 @@ create: ## Create today's memo
 .PHONY: create-truncate
 create-truncate: ## Truncate and create today's memo
 	go run . create --truncate
+
+.PHONY: weekly
+weekly: ## Create weekly report
+	go run . weekly
