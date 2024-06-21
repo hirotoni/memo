@@ -14,9 +14,12 @@ var (
 	_create         = flag.NewFlagSet("create", flag.ExitOnError)
 	_createTruncate = _create.Bool("truncate", false, "before creating today's memo, truncate the file if it exists")
 
+	_weekly = flag.NewFlagSet("weekly", flag.ExitOnError)
+
 	// Subcommand descriptions
 	SUBCOMMANDS = map[*flag.FlagSet]string{
 		_create: "create today's memo",
+		_weekly: "generate weekly report",
 	}
 )
 
@@ -42,7 +45,7 @@ func init() {
 		sb.WriteString("Subcommands:\n")
 		for sc, desc := range SUBCOMMANDS {
 			sb.WriteString("  ")
-			sb.WriteString(sc.Name() + "\t" + desc)
+			sb.WriteString(sc.Name() + "\t" + desc + "\n")
 		}
 		sb.WriteString("\n")
 		sb.WriteString("\n")
@@ -63,13 +66,25 @@ func init() {
 			sb.WriteString("\n")
 			sb.WriteString("\n")
 			sb.WriteString("Flags:\n")
+
+			var c int
 			sc.VisitAll(func(f *flag.Flag) {
-				sb.WriteString("  -")
-				sb.WriteString(f.Name)
-				sb.WriteString("\t")
-				sb.WriteString(f.Usage)
-				sb.WriteString("\n")
+				c++
 			})
+			if c == 0 {
+				sb.WriteString("  No flags for this subcommand\n")
+			} else {
+				sc.VisitAll(func(f *flag.Flag) {
+					if f == nil {
+						sb.WriteString("  No flags for this subcommand\n")
+					}
+					sb.WriteString("  -")
+					sb.WriteString(f.Name)
+					sb.WriteString("\t")
+					sb.WriteString(f.Usage)
+					sb.WriteString("\n")
+				})
+			}
 			sb.WriteString("\n")
 			fmt.Fprintf(flag.CommandLine.Output(), sb.String())
 		}
@@ -90,6 +105,9 @@ func main() {
 	case _create.Name():
 		_create.Parse(flag.Args()[1:])
 		app.OpenTodaysMemo(*_createTruncate)
+		app.WeeklyReport()
+	case _weekly.Name():
+		_weekly.Parse(flag.Args()[1:])
 		app.WeeklyReport()
 	default:
 		fmt.Printf("\nInvalid subcommand: %s\n\n", flag.Args()[0])
