@@ -48,49 +48,17 @@ func init() {
 		sb.WriteString("Subcommands:\n")
 		for _, sc := range SUBCOMMANDS {
 			sb.WriteString("  ")
-			sb.WriteString(sc.subcommand.Name() + "\t" + sc.desc + "\n")
+			sb.WriteString(sc.subcommand.Name() + "\t\t" + sc.desc + "\n")
+			sc.subcommand.VisitAll(func(f *flag.Flag) {
+				sb.WriteString("      -")
+				sb.WriteString(f.Name)
+				sb.WriteString("\t\t")
+				sb.WriteString(f.Usage)
+				sb.WriteString("\n")
+			})
 		}
-		sb.WriteString("\n")
-		sb.WriteString("\n")
-		sb.WriteString("Use \"")
-		sb.WriteString(flag.CommandLine.Name())
-		sb.WriteString(" [subcommand] -h\" for more information about a subcommand.\n")
 		sb.WriteString("\n")
 		fmt.Fprintf(flag.CommandLine.Output(), sb.String())
-	}
-	for _, sc := range SUBCOMMANDS {
-		sc.subcommand.Usage = func() {
-			sb := strings.Builder{}
-			sb.WriteString("\n")
-			sb.WriteString("Subcommand: " + sc.subcommand.Name())
-			sb.WriteString("\n")
-			sb.WriteString("  ")
-			sb.WriteString(sc.desc)
-			sb.WriteString("\n")
-			sb.WriteString("\n")
-			sb.WriteString("Flags:\n")
-
-			var c int
-			sc.subcommand.VisitAll(func(f *flag.Flag) {
-				c++
-			})
-			if c == 0 {
-				sb.WriteString("  No flags for this subcommand\n")
-			} else {
-				sc.subcommand.VisitAll(func(f *flag.Flag) {
-					if f == nil {
-						sb.WriteString("  No flags for this subcommand\n")
-					}
-					sb.WriteString("  -")
-					sb.WriteString(f.Name)
-					sb.WriteString("\t")
-					sb.WriteString(f.Usage)
-					sb.WriteString("\n")
-				})
-			}
-			sb.WriteString("\n")
-			fmt.Fprintf(flag.CommandLine.Output(), sb.String())
-		}
 	}
 	flag.Parse()
 }
