@@ -232,7 +232,7 @@ func (app *App) saveTips(pickTip bool) Tip {
 	allTips := app.getTipNodesFromDir(checkedTips)
 
 	if pickTip {
-		notShown := filter(allTips, func(tn TipNode) bool { return !tn.tip.Checked })
+		notShown := filter(allTips, func(tn TipNode) bool { return tn.kind == KIND_TIP && !tn.tip.Checked })
 		p, _ := randomPick(notShown)
 		picked = p.tip
 
