@@ -201,10 +201,22 @@ func (app *App) WeeklyReport() {
 
 	f.WriteString(TemplateWeeklyReport.String() + "\n")
 	f.WriteString(sb.String())
+
+	// open memo dir with editor
+	cmd := exec.Command("code", app.config.WeeklyReportFile(), "--folder-uri", app.config.BaseDir())
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (app *App) SaveTips() {
 	app.saveTips(false)
+
+	// open memo dir with editor
+	cmd := exec.Command("code", app.config.TipsIndexFile(), "--folder-uri", app.config.BaseDir())
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (app *App) saveTips(pickTip bool) Tip {
