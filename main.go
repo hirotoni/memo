@@ -16,6 +16,8 @@ var (
 
 	_weekly = flag.NewFlagSet("weekly", flag.ExitOnError)
 
+	_tips = flag.NewFlagSet("tips", flag.ExitOnError)
+
 	// Subcommand descriptions
 	SUBCOMMANDS = []struct {
 		subcommand *flag.FlagSet
@@ -23,6 +25,7 @@ var (
 	}{
 		{_create, "create today's memo"},
 		{_weekly, "generate weekly report"},
+		{_tips, "generate tips index"},
 	}
 )
 
@@ -48,11 +51,12 @@ func init() {
 		sb.WriteString("Subcommands:\n")
 		for _, sc := range SUBCOMMANDS {
 			sb.WriteString("  ")
-			sb.WriteString(sc.subcommand.Name() + "\t\t" + sc.desc + "\n")
+			s := fmt.Sprintf("%-10s", sc.subcommand.Name())
+			sb.WriteString(s + "\t\t" + sc.desc + "\n")
 			sc.subcommand.VisitAll(func(f *flag.Flag) {
 				sb.WriteString("      -")
 				sb.WriteString(f.Name)
-				sb.WriteString("\t\t")
+				sb.WriteString("\t\t\t")
 				sb.WriteString(f.Usage)
 				sb.WriteString("\n")
 			})
@@ -78,8 +82,9 @@ func main() {
 		app.OpenTodaysMemo(*_createTruncate)
 		app.WeeklyReport()
 	case _weekly.Name():
-		_weekly.Parse(flag.Args()[1:])
 		app.WeeklyReport()
+	case _tips.Name():
+		app.SaveTips()
 	default:
 		fmt.Printf("\nInvalid subcommand: %s\n\n", flag.Args()[0])
 		flag.Usage()

@@ -13,3 +13,7 @@ create-truncate: ## Truncate and create today's memo
 .PHONY: weekly
 weekly: ## Create weekly report
 	go run . weekly
+
+.PHONY: tips
+tips: ## Generate tips index
+	go run . tips
