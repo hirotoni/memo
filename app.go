@@ -113,9 +113,9 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 		}
 
 		// inherit todos from previous memo
-		b = app.InheritHeading(b, HEADING_NAME_TODOS)
-		b = app.InheritHeading(b, HEADING_NAME_WANTTODOS)
-		b = app.AppendTips(b)
+		b = app.inheritHeading(b, HEADING_NAME_TODOS)
+		b = app.inheritHeading(b, HEADING_NAME_WANTTODOS)
+		b = app.appendTips(b)
 
 		b = app.gmw.InsertTextAfter(b, HEADING_NAME_TITLE, today)
 
@@ -127,82 +127,6 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// InheritHeading inherits todos from previous day's memo
-func (app *App) InheritHeading(tb []byte, heading md.Heading) []byte {
-	// previous days
-	today := time.Now()
-	for i := range make([]int, DAYS_TO_SEEK) {
-		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
-		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
-		if errors.Is(err, os.ErrNotExist) {
-			if i+1 == DAYS_TO_SEEK {
-				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
-			}
-			continue
-		} else if err != nil {
-			log.Fatal(err)
-		}
-
-		_, nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pb, heading)
-		tb = app.gmw.InsertNodesAfter(tb, heading, pb, nodesToInsert)
-		break
-	}
-
-	return tb
-}
-
-// AppendTips appends tips
-func (app *App) AppendTips(tb []byte) []byte {
-	// tips are the things that you want to remember periodically such as
-	// - ER diagrams, component diagrams, constants of application you are in charge
-	// - product management, development process knowledge
-	// - bookmarks, web links
-	// - life sayings, someone's sayings
-
-	// indexed tips
-	var indexTipsShown = filter(app.getTipsFromIndex(), func(t Tip) bool { return t.Checked })
-
-	// all tips from tips dir
-	var allTipsShown, allTipsNotShown = app.getTipsFromDir(indexTipsShown)
-
-	if len(allTipsNotShown) == 0 && len(allTipsShown) == 0 {
-		log.Fatal("no tips found.")
-		return tb
-	}
-
-	// if all tips have been shown, then reset
-	if len(allTipsNotShown) == 0 {
-		var tmp []TipNode
-		for _, v := range allTipsShown {
-			v.tip.Checked = false
-			tmp = append(tmp, v)
-		}
-		allTipsNotShown = tmp
-		allTipsShown = []TipNode{}
-	}
-
-	// pick one
-	picked, allTipsNotShown := randomPick(allTipsNotShown)
-	picked.tip.Checked = true
-	allTipsShown = append(allTipsShown, picked)
-
-	// insert todays tip
-	chosenTip := md.BuildList(md.BuildLink(
-		picked.tip.Text,
-		picked.tip.Destination,
-	))
-	tb = app.gmw.InsertTextAfter(tb, HEADING_NAME_TITLE, chosenTip)
-
-	// create index of all tips
-	allTips := append(allTipsNotShown, allTipsShown...)
-
-	// write tips to index
-	shown := filter(allTips, func(t TipNode) bool { return t.tip.Checked })
-	app.saveTipsToIndex(shown)
-
-	return tb
 }
 
 func (app *App) WeeklyReport() {
@@ -279,6 +203,91 @@ func (app *App) WeeklyReport() {
 	f.WriteString(sb.String())
 }
 
+func (app *App) SaveTips() {
+	app.saveTips(false)
+}
+
+func (app *App) saveTips(pickTip bool) Tip {
+	var picked Tip
+
+	checkedTips := app.getTipsCheckedFromIndex()
+	allTips := app.getTipNodesFromDir(checkedTips)
+
+	if pickTip {
+		notShown := filter(allTips, func(tn TipNode) bool { return !tn.tip.Checked })
+		p, _ := randomPick(notShown)
+		picked = p.tip
+
+		for i, v := range allTips {
+			if v.tip.Destination == picked.Destination {
+				allTips[i].tip.Checked = true
+			}
+		}
+	}
+
+	var buf = &bytes.Buffer{}
+	for _, v := range allTips {
+		v.Print(buf)
+	}
+
+	// write tips to index
+	f, err := os.Create(app.config.TipsIndexFile())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	tipsb := []byte(TemplateTipsIndex.String())
+	tipsb = app.gmw.InsertTextAfter(tipsb, HEADING_NAME_TIPSINDEX, buf.String())
+	f.Write(tipsb)
+
+	return picked
+}
+
+// inheritHeading inherits todos from previous day's memo
+func (app *App) inheritHeading(tb []byte, heading md.Heading) []byte {
+	// previous days
+	today := time.Now()
+	for i := range make([]int, DAYS_TO_SEEK) {
+		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
+		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
+		if errors.Is(err, os.ErrNotExist) {
+			if i+1 == DAYS_TO_SEEK {
+				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
+			}
+			continue
+		} else if err != nil {
+			log.Fatal(err)
+		}
+
+		_, nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pb, heading)
+		tb = app.gmw.InsertNodesAfter(tb, heading, pb, nodesToInsert)
+		break
+	}
+
+	return tb
+}
+
+// appendTips appends tips
+func (app *App) appendTips(tb []byte) []byte {
+	// tips are the things that you want to remember periodically such as
+	// - ER diagrams, component diagrams, constants of application you are in charge
+	// - product management, development process knowledge
+	// - bookmarks, web links
+	// - life sayings, someone's sayings
+
+	picked := app.saveTips(true)
+
+	// insert todays tip
+	chosenTip := md.BuildList(md.BuildLink(
+		picked.Text,
+		picked.Destination,
+	))
+	tb = app.gmw.InsertTextAfter(tb, HEADING_NAME_TITLE, chosenTip)
+
+	return tb
+}
+
+// getTipsFromIndex reads tips from index file
 func (app *App) getTipsFromIndex() []Tip {
 	b, err := os.ReadFile(app.config.TipsIndexFile())
 	if err != nil {
@@ -318,15 +327,9 @@ func (app *App) getTipsFromIndex() []Tip {
 	return tips
 }
 
-func (app *App) getTipsFromDir(indexTipsShown []Tip) ([]TipNode, []TipNode) {
-	var allTipsShown []TipNode
-	var allTipsNotShown []TipNode
-
-	tns := app.getTipNodesFromDir(indexTipsShown)
-
-	allTipsShown = filter(tns, func(tn TipNode) bool { return tn.kind == KIND_TIP && tn.tip.Checked })
-	allTipsNotShown = filter(tns, func(tn TipNode) bool { return tn.kind == KIND_TIP && !tn.tip.Checked })
-	return allTipsShown, allTipsNotShown
+func (app *App) getTipsCheckedFromIndex() []Tip {
+	tips := app.getTipsFromIndex()
+	return filter(tips, func(t Tip) bool { return t.Checked })
 }
 
 func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
@@ -410,100 +413,6 @@ func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
 	}
 
 	return tns
-}
-
-func (app *App) saveTipsToIndex(shown []TipNode) {
-	// TODO redundant with app.getTipNodesFromDir
-
-	var depth int
-	var buf = &bytes.Buffer{}
-
-	err := filepath.WalkDir(app.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if path == app.config.TipsTemplateFile() || path == app.config.TipsIndexFile() {
-			return nil
-		}
-
-		relpath, err := filepath.Rel(app.config.DailymemoDir(), path)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pathlist := strings.Split(relpath, string(filepath.Separator))
-		depth = len(pathlist) - 3 // TODO avoid using magic number
-
-		if d.IsDir() {
-			if path == app.config.TipsDir() {
-				return nil
-			}
-
-			tmp := TipNode{
-				kind:  KIND_DIR,
-				text:  d.Name(),
-				depth: depth,
-			}
-			tmp.Print(buf)
-
-		} else {
-			if filepath.Ext(d.Name()) == ".md" {
-				b, err := os.ReadFile(path)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				h1, h2s := app.getTipsHeadings(b)
-				if h1 == nil || h2s == nil {
-					return nil
-				}
-
-				tmp := TipNode{
-					kind:  KIND_TITLE,
-					text:  string(h1.Text(b)),
-					depth: depth,
-					tip: Tip{
-						Text:        string(h1.Text(b)),
-						Destination: relpath,
-					},
-				}
-				tmp.Print(buf)
-
-				for _, h2 := range h2s {
-					destination := relpath + "#" + md.Text2tag(string(h2.Text(b)))
-					checked := slices.ContainsFunc(shown, func(t TipNode) bool {
-						return t.tip.Destination == destination
-					})
-
-					tmp := TipNode{
-						kind:  KIND_TIP,
-						text:  string(h2.Text(b)),
-						depth: depth + 1,
-						tip: Tip{
-							Text:        string(h2.Text(b)),
-							Destination: destination,
-							Checked:     checked,
-						},
-					}
-					tmp.Print(buf)
-				}
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// write tips to index
-	f, err := os.Create(app.config.TipsIndexFile())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	tipsb := []byte(TemplateTipsIndex.String())
-	tipsb = app.gmw.InsertTextAfter(tipsb, HEADING_NAME_TIPSINDEX, buf.String())
-	f.Write(tipsb)
 }
 
 func (app *App) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
