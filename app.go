@@ -130,7 +130,7 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 }
 
 // WeeklyReport generates weekly report file
-func (app *App) WeeklyReport() {
+func (app *App) WeeklyReport(openEditor bool) {
 	entries, err := os.ReadDir(app.config.DailymemoDir())
 	if err != nil {
 		log.Fatal(err)
@@ -203,21 +203,25 @@ func (app *App) WeeklyReport() {
 	f.WriteString(TemplateWeeklyReport.String() + "\n")
 	f.WriteString(sb.String())
 
-	// open memo dir with editor
-	cmd := exec.Command("code", app.config.WeeklyReportFile(), "--folder-uri", app.config.BaseDir())
-	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+	if openEditor {
+		// open memo dir with editor
+		cmd := exec.Command("code", app.config.WeeklyReportFile(), "--folder-uri", app.config.BaseDir())
+		if err := cmd.Run(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
 // SaveTips generates tips index file
-func (app *App) SaveTips() {
+func (app *App) SaveTips(openEditor bool) {
 	app.saveTips(false)
 
-	// open memo dir with editor
-	cmd := exec.Command("code", app.config.TipsIndexFile(), "--folder-uri", app.config.BaseDir())
-	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+	if openEditor {
+		// open memo dir with editor
+		cmd := exec.Command("code", app.config.TipsIndexFile(), "--folder-uri", app.config.BaseDir())
+		if err := cmd.Run(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 

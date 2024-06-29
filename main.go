@@ -80,11 +80,11 @@ func main() {
 	case _create.Name():
 		_create.Parse(flag.Args()[1:])
 		app.OpenTodaysMemo(*_createTruncate)
-		app.WeeklyReport()
+		app.WeeklyReport(false)
 	case _weekly.Name():
-		app.WeeklyReport()
+		app.WeeklyReport(true)
 	case _tips.Name():
-		app.SaveTips()
+		app.SaveTips(true)
 	default:
 		fmt.Printf("\nInvalid subcommand: %s\n\n", flag.Args()[0])
 		flag.Usage()
