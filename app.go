@@ -129,6 +129,7 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 	}
 }
 
+// WeeklyReport generates weekly report file
 func (app *App) WeeklyReport() {
 	entries, err := os.ReadDir(app.config.DailymemoDir())
 	if err != nil {
@@ -209,6 +210,7 @@ func (app *App) WeeklyReport() {
 	}
 }
 
+// SaveTips generates tips index file
 func (app *App) SaveTips() {
 	app.saveTips(false)
 
