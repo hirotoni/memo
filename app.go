@@ -16,6 +16,7 @@ import (
 	"time"
 
 	md "github.com/hirotoni/memo/markdown"
+	"github.com/hirotoni/memo/models"
 	"github.com/yuin/goldmark/ast"
 	extast "github.com/yuin/goldmark/extension/ast"
 )
@@ -225,20 +226,20 @@ func (app *App) SaveTips(openEditor bool) {
 	}
 }
 
-func (app *App) saveTips(pickTip bool) Tip {
-	var picked Tip
+func (app *App) saveTips(pickTip bool) models.Tip {
+	var picked models.Tip
 
 	checkedTips := app.getTipsCheckedFromIndex()
 	allTips := app.getTipNodesFromDir(checkedTips)
 
 	if pickTip {
-		notShown := filter(allTips, func(tn TipNode) bool { return tn.kind == KIND_TIP && !tn.tip.Checked })
+		notShown := filter(allTips, func(tn models.TipNode) bool { return tn.Kind == models.KIND_TIP && !tn.Tip.Checked })
 		p, _ := randomPick(notShown)
-		picked = p.tip
+		picked = p.Tip
 
 		for i, v := range allTips {
-			if v.tip.Destination == picked.Destination {
-				allTips[i].tip.Checked = true
+			if v.Tip.Destination == picked.Destination {
+				allTips[i].Tip.Checked = true
 			}
 		}
 	}
@@ -306,7 +307,7 @@ func (app *App) appendTips(tb []byte) []byte {
 }
 
 // getTipsFromIndex reads tips from index file
-func (app *App) getTipsFromIndex() []Tip {
+func (app *App) getTipsFromIndex() []models.Tip {
 	b, err := os.ReadFile(app.config.TipsIndexFile())
 	if err != nil {
 		log.Fatal(err)
@@ -315,11 +316,11 @@ func (app *App) getTipsFromIndex() []Tip {
 	doc := app.gmw.Parse(b)
 	// doc.Dump(b, 1)
 
-	var tips []Tip
+	var tips []models.Tip
 	var mywalker = func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if entering {
 			if n.Kind() == ast.KindTextBlock && n.Parent().Kind() == ast.KindListItem {
-				var t = Tip{}
+				var t = models.Tip{}
 				for c := n.FirstChild(); c != nil; c = c.NextSibling() {
 					if c, ok := c.(*ast.Link); ok {
 						t.Text = string(c.Text(b))
@@ -345,13 +346,13 @@ func (app *App) getTipsFromIndex() []Tip {
 	return tips
 }
 
-func (app *App) getTipsCheckedFromIndex() []Tip {
+func (app *App) getTipsCheckedFromIndex() []models.Tip {
 	tips := app.getTipsFromIndex()
-	return filter(tips, func(t Tip) bool { return t.Checked })
+	return filter(tips, func(t models.Tip) bool { return t.Checked })
 }
 
-func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
-	var tns []TipNode
+func (app *App) getTipNodesFromDir(shown []models.Tip) []models.TipNode {
+	var tns []models.TipNode
 
 	err := filepath.WalkDir(app.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -373,10 +374,10 @@ func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
 				return nil
 			}
 
-			tmp := TipNode{
-				kind:  KIND_DIR,
-				text:  d.Name(),
-				depth: depth,
+			tmp := models.TipNode{
+				Kind:  models.KIND_DIR,
+				Text:  d.Name(),
+				Depth: depth,
 			}
 			tns = append(tns, tmp)
 
@@ -392,11 +393,11 @@ func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
 					return nil
 				}
 
-				tmp := TipNode{
-					kind:  KIND_TITLE,
-					text:  string(h1.Text(b)),
-					depth: depth,
-					tip: Tip{
+				tmp := models.TipNode{
+					Kind:  models.KIND_TITLE,
+					Text:  string(h1.Text(b)),
+					Depth: depth,
+					Tip: models.Tip{
 						Text:        string(h1.Text(b)),
 						Destination: relpath,
 					},
@@ -405,15 +406,15 @@ func (app *App) getTipNodesFromDir(shown []Tip) []TipNode {
 
 				for _, h2 := range h2s {
 					destination := relpath + "#" + md.Text2tag(string(h2.Text(b)))
-					checked := slices.ContainsFunc(shown, func(t Tip) bool {
+					checked := slices.ContainsFunc(shown, func(t models.Tip) bool {
 						return t.Destination == destination
 					})
 
-					tmp := TipNode{
-						kind:  KIND_TIP,
-						text:  string(h2.Text(b)),
-						depth: depth + 1,
-						tip: Tip{
+					tmp := models.TipNode{
+						Kind:  models.KIND_TIP,
+						Text:  string(h2.Text(b)),
+						Depth: depth + 1,
+						Tip: models.Tip{
 							Text:        string(h2.Text(b)),
 							Destination: destination,
 							Checked:     checked,

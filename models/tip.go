@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"bytes"
@@ -22,21 +22,21 @@ const (
 )
 
 type TipNode struct {
-	kind  Kind
-	tip   Tip
-	text  string
-	depth int
+	Kind  Kind
+	Tip   Tip
+	Text  string
+	Depth int
 }
 
 func (tn *TipNode) Print(b *bytes.Buffer) {
 	var out string
-	switch tn.kind {
+	switch tn.Kind {
 	case KIND_DIR:
-		out = strings.Repeat("  ", tn.depth) + markdown.BuildList(tn.text)
+		out = strings.Repeat("  ", tn.Depth) + markdown.BuildList(tn.Text)
 	case KIND_TITLE:
-		out = strings.Repeat("  ", tn.depth) + markdown.BuildList(tn.text)
+		out = strings.Repeat("  ", tn.Depth) + markdown.BuildList(tn.Text)
 	case KIND_TIP:
-		out = strings.Repeat("  ", tn.depth) + markdown.BuildCheckbox(markdown.BuildLink(tn.tip.Text, tn.tip.Destination), tn.tip.Checked)
+		out = strings.Repeat("  ", tn.Depth) + markdown.BuildCheckbox(markdown.BuildLink(tn.Tip.Text, tn.Tip.Destination), tn.Tip.Checked)
 	}
 	b.WriteString(out + "\n")
 }
