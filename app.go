@@ -226,11 +226,13 @@ func (app *App) SaveTips(openEditor bool) {
 }
 
 func (app *App) saveTips(pickTip bool) models.Tip {
+	tRepo := repos.NewTipRepo(app.config, app.gmw)
+	tnRepo := repos.NewTipNodeRepo(app.config, app.gmw)
+
+	checkedTips := tRepo.TipsFromIndexChecked()    // TODO handle error
+	allTips := tnRepo.TipNodesFromDir(checkedTips) // TODO handle error
+
 	var picked models.Tip
-
-	checkedTips := app.getTipsCheckedFromIndex()
-	allTips := app.getTipNodesFromDir(checkedTips)
-
 	if pickTip {
 		notShown := filter(allTips, func(tn models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
 		p, _ := randomPick(notShown)
@@ -303,22 +305,6 @@ func (app *App) appendTips(tb []byte) []byte {
 	tb = app.gmw.InsertTextAfter(tb, HEADING_NAME_TITLE, chosenTip)
 
 	return tb
-}
-
-// getTipsFromIndex reads tips from index file
-func (app *App) getTipsFromIndex() []models.Tip {
-	tr := repos.NewTipRepo(app.config, app.gmw)
-	return tr.TipsFromIndex() // TODO handle error
-}
-
-func (app *App) getTipsCheckedFromIndex() []models.Tip {
-	tr := repos.NewTipRepo(app.config, app.gmw)
-	return tr.TipsFromIndexChecked() // TODO handle error
-}
-
-func (app *App) getTipNodesFromDir(shown []models.Tip) []models.TipNode {
-	tr := repos.NewTipNodeRepo(app.config, app.gmw)
-	return tr.TipNodesFromDir(shown) // TODO handle error
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {
