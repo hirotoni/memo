@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"errors"
@@ -36,8 +36,8 @@ type AppConfig struct {
 	baseDir string
 }
 
-func NewAppConfig() AppConfig {
-	ac := AppConfig{
+func NewAppConfig() *AppConfig {
+	ac := &AppConfig{
 		baseDir: DEFAULT_BASE_DIR,
 	}
 

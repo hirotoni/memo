@@ -4,32 +4,31 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"strings"
 	"time"
 
-	md "github.com/hirotoni/memo/markdown"
+	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
+	"github.com/hirotoni/memo/repos"
 	"github.com/yuin/goldmark/ast"
-	extast "github.com/yuin/goldmark/extension/ast"
 )
 
 type App struct {
-	gmw    *md.GoldmarkWrapper
-	config AppConfig
+	gmw    *markdown.GoldmarkWrapper
+	config *config.AppConfig
 }
 
 func NewApp() App {
 	return App{
-		gmw:    md.NewGoldmarkWrapper(),
-		config: NewAppConfig(),
+		gmw:    markdown.NewGoldmarkWrapper(),
+		config: config.NewAppConfig(),
 	}
 }
 
@@ -95,7 +94,7 @@ func (app *App) Initialize() {
 
 // OpenTodaysMemo opens today's memo
 func (app *App) OpenTodaysMemo(truncate bool) {
-	today := time.Now().Format(LAYOUT)
+	today := time.Now().Format(config.LAYOUT)
 	targetFile := filepath.Join(app.config.DailymemoDir(), today+".md")
 
 	log.Default().Printf("truncate: %v", truncate)
@@ -138,7 +137,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 	}
 
 	wantfiles := []string{}
-	reg := regexp.MustCompile(LAYOUT_REGEX)
+	reg := regexp.MustCompile(config.LAYOUT_REGEX)
 	for _, file := range entries {
 		if reg.MatchString(file.Name()) {
 			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir(), file.Name()))
@@ -154,7 +153,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 			log.Fatal("failed to cut suffix.")
 		}
 
-		date, err := time.Parse(LAYOUT, datestring)
+		date, err := time.Parse(config.LAYOUT, datestring)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -184,8 +183,8 @@ func (app *App) WeeklyReport(openEditor bool) {
 
 				order++
 				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
-				tag := md.Text2tag(string(node.Text(b)))
-				s := md.BuildOrderedList(order, md.BuildLink(title, relpath+"#"+tag)) + "\n"
+				tag := markdown.Text2tag(string(node.Text(b)))
+				s := markdown.BuildOrderedList(order, markdown.BuildLink(title, relpath+"#"+tag)) + "\n"
 				sb.WriteString(s)
 			}
 		}
@@ -263,15 +262,15 @@ func (app *App) saveTips(pickTip bool) models.Tip {
 }
 
 // inheritHeading inherits todos from previous day's memo
-func (app *App) inheritHeading(tb []byte, heading md.Heading) []byte {
+func (app *App) inheritHeading(tb []byte, heading markdown.Heading) []byte {
 	// previous days
 	today := time.Now()
-	for i := range make([]int, DAYS_TO_SEEK) {
-		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
+	for i := range make([]int, config.DAYS_TO_SEEK) {
+		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(config.LAYOUT)
 		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
 		if errors.Is(err, os.ErrNotExist) {
-			if i+1 == DAYS_TO_SEEK {
-				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
+			if i+1 == config.DAYS_TO_SEEK {
+				log.Printf("previous memos were not found in previous %d days.", config.DAYS_TO_SEEK)
 			}
 			continue
 		} else if err != nil {
@@ -297,7 +296,7 @@ func (app *App) appendTips(tb []byte) []byte {
 	picked := app.saveTips(true)
 
 	// insert todays tip
-	chosenTip := md.BuildList(md.BuildLink(
+	chosenTip := markdown.BuildList(markdown.BuildLink(
 		picked.Text,
 		picked.Destination,
 	))
@@ -308,147 +307,18 @@ func (app *App) appendTips(tb []byte) []byte {
 
 // getTipsFromIndex reads tips from index file
 func (app *App) getTipsFromIndex() []models.Tip {
-	b, err := os.ReadFile(app.config.TipsIndexFile())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	doc := app.gmw.Parse(b)
-	// doc.Dump(b, 1)
-
-	var tips []models.Tip
-	var mywalker = func(n ast.Node, entering bool) (ast.WalkStatus, error) {
-		if entering {
-			if n.Kind() == ast.KindTextBlock && n.Parent().Kind() == ast.KindListItem {
-				var t = models.Tip{}
-				for c := n.FirstChild(); c != nil; c = c.NextSibling() {
-					if c, ok := c.(*ast.Link); ok {
-						t.Text = string(c.Text(b))
-						t.Destination = string(c.Destination)
-					}
-					if c, ok := c.(*extast.TaskCheckBox); ok {
-						t.Checked = c.IsChecked
-					}
-				}
-				if t.Text == "" && t.Destination == "" {
-					return ast.WalkContinue, nil
-				}
-				tips = append(tips, t)
-			}
-		}
-		return ast.WalkContinue, nil
-	}
-	err = ast.Walk(doc, mywalker)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return tips
+	tr := repos.NewTipRepo(app.config, app.gmw)
+	return tr.TipsFromIndex() // TODO handle error
 }
 
 func (app *App) getTipsCheckedFromIndex() []models.Tip {
-	tips := app.getTipsFromIndex()
-	return filter(tips, func(t models.Tip) bool { return t.Checked })
+	tr := repos.NewTipRepo(app.config, app.gmw)
+	return tr.TipsFromIndexChecked() // TODO handle error
 }
 
 func (app *App) getTipNodesFromDir(shown []models.Tip) []models.TipNode {
-	var tns []models.TipNode
-
-	err := filepath.WalkDir(app.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if path == app.config.TipsTemplateFile() || path == app.config.TipsIndexFile() {
-			return nil
-		}
-
-		relpath, err := filepath.Rel(app.config.DailymemoDir(), path)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pathlist := strings.Split(relpath, string(filepath.Separator))
-		depth := len(pathlist) - 3 // TODO avoid using magic number
-
-		if d.IsDir() {
-			if path == app.config.TipsDir() {
-				return nil
-			}
-
-			tmp := models.TipNode{
-				Kind:  models.TIPNODEKIND_DIR,
-				Text:  d.Name(),
-				Depth: depth,
-			}
-			tns = append(tns, tmp)
-
-		} else {
-			if filepath.Ext(d.Name()) == ".md" {
-				b, err := os.ReadFile(path)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				h1, h2s := app.getTipsHeadings(b)
-				if h1 == nil || h2s == nil {
-					return nil
-				}
-
-				tmp := models.TipNode{
-					Kind:  models.TIPNODEKIND_TITLE,
-					Text:  string(h1.Text(b)),
-					Depth: depth,
-					Tip: models.Tip{
-						Text:        string(h1.Text(b)),
-						Destination: relpath,
-					},
-				}
-				tns = append(tns, tmp)
-
-				for _, h2 := range h2s {
-					destination := relpath + "#" + md.Text2tag(string(h2.Text(b)))
-					checked := slices.ContainsFunc(shown, func(t models.Tip) bool {
-						return t.Destination == destination
-					})
-
-					tmp := models.TipNode{
-						Kind:  models.TIPNODEKIND_TIP,
-						Text:  string(h2.Text(b)),
-						Depth: depth + 1,
-						Tip: models.Tip{
-							Text:        string(h2.Text(b)),
-							Destination: destination,
-							Checked:     checked,
-						},
-					}
-					tns = append(tns, tmp)
-				}
-			}
-		}
-		return nil
-	})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return tns
-}
-
-func (app *App) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
-	_, headings := app.gmw.GetHeadingNodesByLevel(b, 1)
-	if len(headings) == 0 {
-		return nil, nil
-	}
-	heading := headings[0]
-	heading1, nodes := app.gmw.FindHeadingAndGetHangingNodes(b, md.Heading{Level: 1, Text: string(heading.Text(b))})
-
-	heading2s := filter(nodes, func(n ast.Node) bool {
-		h, ok := n.(*ast.Heading)
-		return ok && h.Level == 2
-	})
-
-	return heading1, heading2s
-
+	tr := repos.NewTipNodeRepo(app.config, app.gmw)
+	return tr.TipNodesFromDir(shown) // TODO handle error
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {
