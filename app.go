@@ -51,7 +51,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(TemplateDailymemo.String())
+		f.WriteString(models.TemplateDailymemo.String())
 
 		log.Printf("dailymemo template file initialized: %s", app.config.DailymemoTemplateFile())
 	}
@@ -73,7 +73,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(TemplateTips.String())
+		f.WriteString(models.TemplateTips.String())
 
 		log.Printf("tips template file initialized: %s", app.config.TipsTemplateFile())
 	}
@@ -86,7 +86,7 @@ func (app *App) Initialize() {
 		}
 		defer f.Close()
 
-		f.WriteString(TemplateTipsIndex.String())
+		f.WriteString(models.TemplateTipsIndex.String())
 
 		log.Printf("tips index file initialized: %s", app.config.TipsIndexFile())
 	}
@@ -113,11 +113,11 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 		}
 
 		// inherit todos from previous memo
-		b = app.inheritHeading(b, HEADING_NAME_TODOS)
-		b = app.inheritHeading(b, HEADING_NAME_WANTTODOS)
+		b = app.inheritHeading(b, models.HEADING_NAME_TODOS)
+		b = app.inheritHeading(b, models.HEADING_NAME_WANTTODOS)
 		b = app.appendTips(b)
 
-		b = app.gmw.InsertTextAfter(b, HEADING_NAME_TITLE, today)
+		b = app.gmw.InsertTextAfter(b, models.HEADING_NAME_TITLE, today)
 
 		f.Write(b)
 	}
@@ -171,7 +171,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 			log.Fatal(err)
 		}
 
-		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(b, HEADING_NAME_MEMOS)
+		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(b, models.HEADING_NAME_MEMOS)
 
 		var order = 0
 		for _, node := range hangingNodes {
@@ -200,7 +200,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 	}
 	defer f.Close()
 
-	f.WriteString(TemplateWeeklyReport.String() + "\n")
+	f.WriteString(models.TemplateWeeklyReport.String() + "\n")
 	f.WriteString(sb.String())
 
 	if openEditor {
@@ -256,8 +256,8 @@ func (app *App) saveTips(pickTip bool) models.Tip {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	tipsb := []byte(TemplateTipsIndex.String())
-	tipsb = app.gmw.InsertTextAfter(tipsb, HEADING_NAME_TIPSINDEX, buf.String())
+	tipsb := []byte(models.TemplateTipsIndex.String())
+	tipsb = app.gmw.InsertTextAfter(tipsb, models.HEADING_NAME_TIPSINDEX, buf.String())
 	f.Write(tipsb)
 
 	return picked
@@ -302,7 +302,7 @@ func (app *App) appendTips(tb []byte) []byte {
 		picked.Text,
 		picked.Destination,
 	))
-	tb = app.gmw.InsertTextAfter(tb, HEADING_NAME_TITLE, chosenTip)
+	tb = app.gmw.InsertTextAfter(tb, models.HEADING_NAME_TITLE, chosenTip)
 
 	return tb
 }
