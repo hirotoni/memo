@@ -233,7 +233,7 @@ func (app *App) saveTips(pickTip bool) models.Tip {
 	allTips := app.getTipNodesFromDir(checkedTips)
 
 	if pickTip {
-		notShown := filter(allTips, func(tn models.TipNode) bool { return tn.Kind == models.KIND_TIP && !tn.Tip.Checked })
+		notShown := filter(allTips, func(tn models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
 		p, _ := randomPick(notShown)
 		picked = p.Tip
 
@@ -375,7 +375,7 @@ func (app *App) getTipNodesFromDir(shown []models.Tip) []models.TipNode {
 			}
 
 			tmp := models.TipNode{
-				Kind:  models.KIND_DIR,
+				Kind:  models.TIPNODEKIND_DIR,
 				Text:  d.Name(),
 				Depth: depth,
 			}
@@ -394,7 +394,7 @@ func (app *App) getTipNodesFromDir(shown []models.Tip) []models.TipNode {
 				}
 
 				tmp := models.TipNode{
-					Kind:  models.KIND_TITLE,
+					Kind:  models.TIPNODEKIND_TITLE,
 					Text:  string(h1.Text(b)),
 					Depth: depth,
 					Tip: models.Tip{
@@ -411,7 +411,7 @@ func (app *App) getTipNodesFromDir(shown []models.Tip) []models.TipNode {
 					})
 
 					tmp := models.TipNode{
-						Kind:  models.KIND_TIP,
+						Kind:  models.TIPNODEKIND_TIP,
 						Text:  string(h2.Text(b)),
 						Depth: depth + 1,
 						Tip: models.Tip{
