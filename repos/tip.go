@@ -11,24 +11,19 @@ import (
 	extast "github.com/yuin/goldmark/extension/ast"
 )
 
-type TipRepo interface {
-	TipsFromIndex() []models.Tip
-	TipsFromIndexChecked() []models.Tip
-}
-
-type TipRepoImpl struct {
+type TipRepo struct {
 	config *config.AppConfig
 	gmw    *markdown.GoldmarkWrapper
 }
 
-func NewTipRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) TipRepo {
-	return &TipRepoImpl{
+func NewTipRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) *TipRepo {
+	return &TipRepo{
 		config: config,
 		gmw:    gmw,
 	}
 }
 
-func (repo *TipRepoImpl) TipsFromIndex() []models.Tip {
+func (repo *TipRepo) TipsFromIndex() []models.Tip {
 	b, err := os.ReadFile(repo.config.TipsIndexFile())
 	if err != nil {
 		log.Fatal(err)
@@ -67,7 +62,7 @@ func (repo *TipRepoImpl) TipsFromIndex() []models.Tip {
 	return tips
 }
 
-func (repo *TipRepoImpl) TipsFromIndexChecked() []models.Tip {
+func (repo *TipRepo) TipsFromIndexChecked() []models.Tip {
 	tips := repo.TipsFromIndex()
 	return filter(tips, func(t models.Tip) bool { return t.Checked })
 }

@@ -15,23 +15,19 @@ import (
 	"github.com/yuin/goldmark/ast"
 )
 
-type TipNodeRepo interface {
-	TipNodesFromDir(tips []models.Tip) []models.TipNode
-}
-
-type TipNodeRepoImpl struct {
+type TipNodeRepo struct {
 	config *config.AppConfig
 	gmw    *markdown.GoldmarkWrapper
 }
 
-func NewTipNodeRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) TipNodeRepo {
-	return &TipNodeRepoImpl{
+func NewTipNodeRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) *TipNodeRepo {
+	return &TipNodeRepo{
 		config: config,
 		gmw:    gmw,
 	}
 }
 
-func (repo *TipNodeRepoImpl) TipNodesFromDir(shown []models.Tip) []models.TipNode {
+func (repo *TipNodeRepo) TipNodesFromDir(shown []models.Tip) []models.TipNode {
 	var tns []models.TipNode
 
 	err := filepath.WalkDir(repo.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
@@ -113,7 +109,7 @@ func (repo *TipNodeRepoImpl) TipNodesFromDir(shown []models.Tip) []models.TipNod
 
 	return tns
 }
-func (repo *TipNodeRepoImpl) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
+func (repo *TipNodeRepo) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
 	_, headings := repo.gmw.GetHeadingNodesByLevel(b, 1)
 	if len(headings) == 0 {
 		return nil, nil
