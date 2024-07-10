@@ -7,7 +7,7 @@ create: ## Create today's memo
 	go run . create
 
 .PHONY: create-truncate
-create-truncate: ## Truncate and create today's memo
+create-truncate: ## Create today's memo after truncating the file if it exists
 	go run . create --truncate
 
 .PHONY: weekly
