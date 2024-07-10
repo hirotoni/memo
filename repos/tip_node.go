@@ -27,7 +27,7 @@ func NewTipNodeRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) *Ti
 	}
 }
 
-func (repo *TipNodeRepo) TipNodesFromDir(shown []models.Tip) []models.TipNode {
+func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []models.Tip) []models.TipNode {
 	var tns []models.TipNode
 
 	err := filepath.WalkDir(repo.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {

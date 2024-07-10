@@ -229,8 +229,8 @@ func (app *App) saveTips(pickTip bool) models.Tip {
 	tRepo := repos.NewTipRepo(app.config, app.gmw)
 	tnRepo := repos.NewTipNodeRepo(app.config, app.gmw)
 
-	checkedTips := tRepo.TipsFromIndexChecked()    // TODO handle error
-	allTips := tnRepo.TipNodesFromDir(checkedTips) // TODO handle error
+	checkedTips := tRepo.TipsFromIndexChecked()        // TODO handle error
+	allTips := tnRepo.TipNodesFromTipsDir(checkedTips) // TODO handle error
 
 	var picked models.Tip
 	if pickTip {
