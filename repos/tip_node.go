@@ -10,7 +10,6 @@ import (
 
 	"github.com/hirotoni/memo/config"
 	"github.com/hirotoni/memo/markdown"
-	md "github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
 	"github.com/yuin/goldmark/ast"
 )
@@ -81,7 +80,7 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []models.Tip) []models.TipNod
 				tns = append(tns, tmp)
 
 				for _, h2 := range h2s {
-					destination := relpath + "#" + md.Text2tag(string(h2.Text(b)))
+					destination := relpath + "#" + markdown.Text2tag(string(h2.Text(b)))
 					checked := slices.ContainsFunc(shown, func(t models.Tip) bool {
 						return t.Destination == destination
 					})
