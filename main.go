@@ -6,8 +6,6 @@ import (
 	"log"
 	"strings"
 	"time"
-
-	"github.com/hirotoni/memo/config"
 )
 
 var (
@@ -33,7 +31,7 @@ var (
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	tz, err := time.LoadLocation(config.TIMEZONE)
+	tz, err := time.LoadLocation(TIMEZONE)
 	if err != nil {
 		panic(err)
 	}

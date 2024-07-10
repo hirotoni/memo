@@ -20,6 +20,15 @@ import (
 	"github.com/yuin/goldmark/ast"
 )
 
+const (
+	TIMEZONE     = "Asia/Tokyo"
+	LAYOUT       = "2006-01-02-Mon"
+	LAYOUT_REGEX = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
+
+	// number of dates to seek back when inheriting todos from previous days
+	DAYS_TO_SEEK = 10
+)
+
 type App struct {
 	gmw    *markdown.GoldmarkWrapper
 	config *config.AppConfig
@@ -94,7 +103,7 @@ func (app *App) Initialize() {
 
 // OpenTodaysMemo opens today's memo
 func (app *App) OpenTodaysMemo(truncate bool) {
-	today := time.Now().Format(config.LAYOUT)
+	today := time.Now().Format(LAYOUT)
 	targetFile := filepath.Join(app.config.DailymemoDir(), today+".md")
 
 	log.Default().Printf("truncate: %v", truncate)
@@ -137,7 +146,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 	}
 
 	wantfiles := []string{}
-	reg := regexp.MustCompile(config.LAYOUT_REGEX)
+	reg := regexp.MustCompile(LAYOUT_REGEX)
 	for _, file := range entries {
 		if reg.MatchString(file.Name()) {
 			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir(), file.Name()))
@@ -153,7 +162,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 			log.Fatal("failed to cut suffix.")
 		}
 
-		date, err := time.Parse(config.LAYOUT, datestring)
+		date, err := time.Parse(LAYOUT, datestring)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -267,12 +276,12 @@ func (app *App) saveTips(pickTip bool) models.Tip {
 func (app *App) inheritHeading(tb []byte, heading markdown.Heading) []byte {
 	// previous days
 	today := time.Now()
-	for i := range make([]int, config.DAYS_TO_SEEK) {
-		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(config.LAYOUT)
+	for i := range make([]int, DAYS_TO_SEEK) {
+		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
 		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
 		if errors.Is(err, os.ErrNotExist) {
-			if i+1 == config.DAYS_TO_SEEK {
-				log.Printf("previous memos were not found in previous %d days.", config.DAYS_TO_SEEK)
+			if i+1 == DAYS_TO_SEEK {
+				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
 			}
 			continue
 		} else if err != nil {

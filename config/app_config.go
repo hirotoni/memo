@@ -18,13 +18,6 @@ const (
 	FILE_NAME_TIPS_TEMPLATE      = "template.md"
 	FILE_NAME_TIPS_INDEX         = "index.md"
 	FILE_NAME_WEEKLY_REPORT      = "weekly_report.md"
-
-	TIMEZONE     = "Asia/Tokyo"
-	LAYOUT       = "2006-01-02-Mon"
-	LAYOUT_REGEX = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
-
-	// number of dates to seek back when inheriting todos from previous days
-	DAYS_TO_SEEK = 10
 )
 
 var (
