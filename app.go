@@ -44,60 +44,40 @@ func NewApp() App {
 // Initialize initializes dirs and files
 func (app *App) Initialize() {
 	// dailymemo dir
-	_, err := os.Stat(app.config.DailymemoDir())
-	if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(app.config.DailymemoDir(), 0750); err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("memo directory initialized: %s", app.config.BaseDir())
-	}
+	initializeDir(app.config.DailymemoDir())
 	// dailymemo template file
-	_, err = os.Stat(app.config.DailymemoTemplateFile())
-	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(app.config.DailymemoTemplateFile())
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-
-		f.WriteString(models.TemplateDailymemo.String())
-
-		log.Printf("dailymemo template file initialized: %s", app.config.DailymemoTemplateFile())
-	}
+	initializeFile(app.config.DailymemoTemplateFile(), models.TemplateDailymemo)
 
 	// tips dir
-	_, err = os.Stat(app.config.TipsDir())
-	if errors.Is(err, os.ErrNotExist) {
-		if err := os.MkdirAll(app.config.TipsDir(), 0750); err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("tips directory initialized: %s", app.config.TipsDir())
-	}
+	initializeDir(app.config.TipsDir())
 	// tips template file
-	_, err = os.Stat(app.config.TipsTemplateFile())
-	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(app.config.TipsTemplateFile())
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-
-		f.WriteString(models.TemplateTips.String())
-
-		log.Printf("tips template file initialized: %s", app.config.TipsTemplateFile())
-	}
+	initializeFile(app.config.TipsTemplateFile(), models.TemplateTips)
 	// tips index file
-	_, err = os.Stat(app.config.TipsIndexFile())
+	initializeFile(app.config.TipsIndexFile(), models.TemplateTipsIndex)
+}
+
+func initializeFile(filepath string, template models.Template) {
+	_, err := os.Stat(filepath)
 	if errors.Is(err, os.ErrNotExist) {
-		f, err := os.Create(app.config.TipsIndexFile())
+		f, err := os.Create(filepath)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer f.Close()
 
-		f.WriteString(models.TemplateTipsIndex.String())
+		f.WriteString(template.String())
 
-		log.Printf("tips index file initialized: %s", app.config.TipsIndexFile())
+		log.Printf("file initialized: %s", filepath)
+	}
+}
+
+func initializeDir(dirpath string) {
+	_, err := os.Stat(dirpath)
+	if errors.Is(err, os.ErrNotExist) {
+		if err := os.MkdirAll(dirpath, 0750); err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("directory initialized: %s", dirpath)
 	}
 }
 
