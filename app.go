@@ -224,12 +224,14 @@ func (app *App) saveTips(pickTip bool) models.Tip {
 	var picked models.Tip
 	if pickTip {
 		notShown := filter(allTips, func(tn models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
-		p, _ := randomPick(notShown)
-		picked = p.Tip
+		if len(notShown) > 0 {
+			p, _ := randomPick(notShown)
+			picked = p.Tip
 
-		for i, v := range allTips {
-			if v.Tip.Destination == picked.Destination {
-				allTips[i].Tip.Checked = true
+			for i, v := range allTips {
+				if v.Tip.Destination == picked.Destination {
+					allTips[i].Tip.Checked = true
+				}
 			}
 		}
 	}
@@ -287,11 +289,13 @@ func (app *App) appendTips(tb []byte) []byte {
 	picked := app.saveTips(true)
 
 	// insert todays tip
-	chosenTip := markdown.BuildList(markdown.BuildLink(
-		picked.Text,
-		picked.Destination,
-	))
-	tb = app.gmw.InsertTextAfter(tb, models.HEADING_NAME_TITLE, chosenTip)
+	if picked.Destination != "" {
+		chosenTip := markdown.BuildList(markdown.BuildLink(
+			picked.Text,
+			picked.Destination,
+		))
+		tb = app.gmw.InsertTextAfter(tb, models.HEADING_NAME_TITLE, chosenTip)
+	}
 
 	return tb
 }
