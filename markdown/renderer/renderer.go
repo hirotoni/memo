@@ -193,7 +193,7 @@ func (r *MarkdownRenderer) renderLink(
 	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.Link)
 	if entering {
-		// NOTE As of goldmark v1.7.1, ast.Link.Title is not set by default markdown parser, so that n.Text(source) is used here.
+		// NOTE As of goldmark v1.7.1, ast.Link.Title is not set by default markdown parser, so that n.Text(source) is used here instead.
 		// n.Text(source) retrieves text from n's child node (ast.Text) in advance to node-walking operation.
 		w.WriteString(fmt.Sprintf("[%s](%s)", n.Text(source), n.Destination))
 	}
