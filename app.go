@@ -214,24 +214,34 @@ func (app *App) SaveTips(openEditor bool) {
 	}
 }
 
-func (app *App) saveTips(pickTip bool) models.Tip {
+func (app *App) saveTips(pickTip bool) *models.Tip {
 	tRepo := repos.NewTipRepo(app.config, app.gmw)
 	tnRepo := repos.NewTipNodeRepo(app.config, app.gmw)
 
 	checkedTips := tRepo.TipsFromIndexChecked()        // TODO handle error
 	allTips := tnRepo.TipNodesFromTipsDir(checkedTips) // TODO handle error
+	if len(allTips) == 0 {
+		return nil
+	}
 
-	var picked models.Tip
+	var picked *models.Tip
 	if pickTip {
 		notShown := filter(allTips, func(tn models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
-		if len(notShown) > 0 {
-			p, _ := randomPick(notShown)
-			picked = p.Tip
 
-			for i, v := range allTips {
-				if v.Tip.Destination == picked.Destination {
-					allTips[i].Tip.Checked = true
-				}
+		if len(notShown) == 0 {
+			// reset all tips
+			for _, v := range allTips {
+				v.Tip.Checked = false
+			}
+			notShown = allTips
+		}
+
+		p, _ := randomPick(notShown)
+		picked = &p.Tip
+
+		for _, v := range allTips {
+			if v.Tip.Destination == picked.Destination {
+				v.Tip.Checked = true
 			}
 		}
 	}
