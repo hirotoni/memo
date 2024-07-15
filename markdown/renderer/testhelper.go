@@ -5,6 +5,12 @@ import (
 	extast "github.com/yuin/goldmark/extension/ast"
 )
 
+func generateHeader(level int, isBlankSpacePrevious bool) ast.Node {
+	h := ast.NewHeading(level)
+	h.SetBlankPreviousLines(isBlankSpacePrevious)
+	return h
+}
+
 func generateLink(text, destination []byte) ast.Node {
 	nl := ast.NewLink()
 	nl.Destination = destination

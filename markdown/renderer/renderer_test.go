@@ -11,52 +11,85 @@ import (
 )
 
 func TestMarkdownRenderer_renderHeading(t *testing.T) {
-	assert := assert.New(t)
 	type args struct {
 		node     ast.Node
 		entering bool
 	}
+	type wants struct {
+		status ast.WalkStatus
+		str    string
+		err    bool
+	}
 
 	tests := []struct {
-		name       string
-		args       args
-		wantStatus ast.WalkStatus
-		wantStr    string
-		wantErr    bool
+		name  string
+		args  args
+		wants wants
 	}{
 		{
 			name: "entering, level 1",
 			args: args{
-				node:     &ast.Heading{Level: 1},
+				node:     generateHeader(1, false),
 				entering: true,
 			},
-			wantStatus: ast.WalkContinue,
-			wantStr:    "# ",
-			wantErr:    false,
-		},
-		{
-			name: "entering, level 6",
-			args: args{
-				node:     &ast.Heading{Level: 6},
-				entering: true,
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "# ",
+				err:    false,
 			},
-			wantStatus: ast.WalkContinue,
-			wantStr:    "###### ",
-			wantErr:    false,
 		},
 		{
 			name: "exiting, level 1",
 			args: args{
-				node:     &ast.Heading{Level: 1},
+				node:     generateHeader(1, false),
 				entering: false,
 			},
-			wantStatus: ast.WalkContinue,
-			wantStr:    "",
-			wantErr:    false,
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "",
+				err:    false,
+			},
+		},
+		{
+			name: "entering, level 6",
+			args: args{
+				node:     generateHeader(6, false),
+				entering: true,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "###### ",
+				err:    false,
+			},
+		},
+		{
+			name: "entering, blank previous lines",
+			args: args{
+				node:     generateHeader(1, true),
+				entering: true,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "\n\n# ",
+				err:    false,
+			},
+		},
+		{
+			name: "exiting, blank previous lines",
+			args: args{
+				node:     generateHeader(1, true),
+				entering: false,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "",
+				err:    false,
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
 			r := NewMarkdownRenderer()
 			source := []byte("dummy source")
 
@@ -65,15 +98,15 @@ func TestMarkdownRenderer_renderHeading(t *testing.T) {
 
 			got, err := r.renderHeading(w, source, tt.args.node, tt.args.entering)
 
-			if tt.wantErr {
+			if tt.wants.err {
 				assert.NotNil(err)
 			}
 
 			assert.Nil(err)
-			assert.Equal(tt.wantStatus, got)
+			assert.Equal(tt.wants.status, got)
 
 			assert.NoError(w.Flush())
-			assert.Equal(tt.wantStr, buf.String())
+			assert.Equal(tt.wants.str, buf.String())
 		})
 	}
 }
@@ -108,12 +141,13 @@ func TestMarkdownRenderer_renderEmphasis(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
 			r := NewMarkdownRenderer()
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
-			dummySource := []byte("dummy source")
+			source := []byte("dummy source")
 
-			got, err := r.renderEmphasis(w, dummySource, tt.args.node, tt.args.entering)
+			got, err := r.renderEmphasis(w, source, tt.args.node, tt.args.entering)
 			if (err != nil) != tt.wants.err {
 				t.Errorf("MarkdownRenderer.renderEmphasis() error = %v, wantErr %v", err, tt.wants.err)
 				return
@@ -122,8 +156,8 @@ func TestMarkdownRenderer_renderEmphasis(t *testing.T) {
 				t.Errorf("MarkdownRenderer.renderEmphasis() = %v, want %v", got, tt.wants.status)
 			}
 
-			assert.NoError(t, w.Flush())
-			assert.Equal(t, tt.wants.str, sb.String())
+			assert.NoError(w.Flush())
+			assert.Equal(tt.wants.str, sb.String())
 		})
 	}
 }
@@ -169,6 +203,7 @@ func TestMarkdownRenderer_renderTaskCheckBox(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
 			r := NewMarkdownRenderer()
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
@@ -183,8 +218,8 @@ func TestMarkdownRenderer_renderTaskCheckBox(t *testing.T) {
 				t.Errorf("MarkdownRenderer.renderTaskCheckBox() = %v, want %v", got, tt.wants.status)
 			}
 
-			assert.NoError(t, w.Flush())
-			assert.Equal(t, tt.wants.str, sb.String())
+			assert.NoError(w.Flush())
+			assert.Equal(tt.wants.str, sb.String())
 		})
 	}
 }
@@ -235,6 +270,7 @@ func TestMarkdownRenderer_renderLink(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
 			r := NewMarkdownRenderer()
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
@@ -248,8 +284,8 @@ func TestMarkdownRenderer_renderLink(t *testing.T) {
 				t.Errorf("MarkdownRenderer.renderLink() = %v, want %v", got, tt.wants.status)
 			}
 
-			assert.NoError(t, w.Flush())
-			assert.Equal(t, tt.wants.str, sb.String())
+			assert.NoError(w.Flush())
+			assert.Equal(tt.wants.str, sb.String())
 		})
 	}
 }
@@ -302,6 +338,7 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
 			r := NewMarkdownRenderer()
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
@@ -315,8 +352,8 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 				t.Errorf("MarkdownRenderer.renderAutoLink() = %v, want %v", got, tt.wants.status)
 			}
 
-			assert.NoError(t, w.Flush())
-			assert.Equal(t, tt.wants.str, sb.String())
+			assert.NoError(w.Flush())
+			assert.Equal(tt.wants.str, sb.String())
 		})
 	}
 }
