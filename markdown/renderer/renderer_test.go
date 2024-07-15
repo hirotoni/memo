@@ -187,3 +187,82 @@ func TestMarkdownRenderer_renderTaskCheckBox(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkdownRenderer_renderLink(t *testing.T) {
+	type args struct {
+		source   []byte
+		node     ast.Node
+		entering bool
+	}
+	type wants struct {
+		status ast.WalkStatus
+		str    string
+		err    bool
+	}
+
+	// test data helper
+	generateLink := func(text, destination []byte) ast.Node {
+		nl := ast.NewLink()
+		nl.Destination = destination
+
+		// segment
+		t := ast.NewText()
+		t.Segment.Start = 0
+		t.Segment.Stop = len(text)
+		nl.AppendChild(nl, t)
+
+		return nl
+	}
+
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{
+		{
+			name: "entering true",
+			args: args{
+				source:   []byte("text"),
+				node:     generateLink([]byte("text"), []byte("destination")),
+				entering: true,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "[text](destination)",
+				err:    false,
+			},
+		},
+		{
+			name: "entering false",
+			args: args{
+				source:   []byte("text"),
+				node:     generateLink([]byte("text"), []byte("destination")),
+				entering: false,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "",
+				err:    false,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewMarkdownRenderer()
+			sb := new(strings.Builder)
+			w := bufio.NewWriter(sb)
+
+			got, err := r.renderLink(w, tt.args.source, tt.args.node, tt.args.entering)
+			if (err != nil) != tt.wants.err {
+				t.Errorf("MarkdownRenderer.renderLink() error = %v, wantErr %v", err, tt.wants.err)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.wants.status) {
+				t.Errorf("MarkdownRenderer.renderLink() = %v, want %v", got, tt.wants.status)
+			}
+
+			assert.NoError(t, w.Flush())
+			assert.Equal(t, tt.wants.str, sb.String())
+		})
+	}
+}
