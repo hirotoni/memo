@@ -23,7 +23,7 @@ func NewTipRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) *TipRep
 	}
 }
 
-func (repo *TipRepo) TipsFromIndex() []models.Tip {
+func (repo *TipRepo) TipsFromIndex() []*models.Tip {
 	b, err := os.ReadFile(repo.config.TipsIndexFile())
 	if err != nil {
 		log.Fatal(err)
@@ -32,11 +32,11 @@ func (repo *TipRepo) TipsFromIndex() []models.Tip {
 	doc := repo.gmw.Parse(b)
 	// doc.Dump(b, 1)
 
-	var tips []models.Tip
+	var tips []*models.Tip
 	var mywalker = func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if entering {
 			if n.Kind() == ast.KindTextBlock && n.Parent().Kind() == ast.KindListItem {
-				var t = models.Tip{}
+				var t = &models.Tip{}
 				for c := n.FirstChild(); c != nil; c = c.NextSibling() {
 					if c, ok := c.(*ast.Link); ok {
 						t.Text = string(c.Text(b))
@@ -62,9 +62,9 @@ func (repo *TipRepo) TipsFromIndex() []models.Tip {
 	return tips
 }
 
-func (repo *TipRepo) TipsFromIndexChecked() []models.Tip {
+func (repo *TipRepo) TipsFromIndexChecked() []*models.Tip {
 	tips := repo.TipsFromIndex()
-	return filter(tips, func(t models.Tip) bool { return t.Checked })
+	return filter(tips, func(t *models.Tip) bool { return t.Checked })
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {

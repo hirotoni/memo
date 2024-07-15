@@ -226,7 +226,7 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 
 	var picked *models.Tip
 	if pickTip {
-		notShown := filter(allTips, func(tn models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
+		notShown := filter(allTips, func(tn *models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
 
 		if len(notShown) == 0 {
 			// reset all tips

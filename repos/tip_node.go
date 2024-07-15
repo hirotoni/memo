@@ -26,8 +26,8 @@ func NewTipNodeRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) *Ti
 	}
 }
 
-func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []models.Tip) []models.TipNode {
-	var tns []models.TipNode
+func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []*models.Tip) []*models.TipNode {
+	var tns []*models.TipNode
 
 	err := filepath.WalkDir(repo.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -54,7 +54,7 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []models.Tip) []models.TipNod
 				Text:  d.Name(),
 				Depth: depth,
 			}
-			tns = append(tns, tmp)
+			tns = append(tns, &tmp)
 
 		} else {
 			if filepath.Ext(d.Name()) == ".md" {
@@ -77,11 +77,11 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []models.Tip) []models.TipNod
 						Destination: relpath,
 					},
 				}
-				tns = append(tns, tmp)
+				tns = append(tns, &tmp)
 
 				for _, h2 := range h2s {
 					destination := relpath + "#" + markdown.Text2tag(string(h2.Text(b)))
-					checked := slices.ContainsFunc(shown, func(t models.Tip) bool {
+					checked := slices.ContainsFunc(shown, func(t *models.Tip) bool {
 						return t.Destination == destination
 					})
 
@@ -95,7 +95,7 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []models.Tip) []models.TipNod
 							Checked:     checked,
 						},
 					}
-					tns = append(tns, tmp)
+					tns = append(tns, &tmp)
 				}
 			}
 		}
