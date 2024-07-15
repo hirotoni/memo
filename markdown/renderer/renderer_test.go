@@ -435,6 +435,19 @@ func TestMarkdownRenderer_renderText(t *testing.T) {
 			},
 		},
 		{
+			name: "entering, parent nil",
+			args: args{
+				source:   source,
+				node:     genTextNode(source, true, nil),
+				entering: true,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "",
+				err:    false,
+			},
+		},
+		{
 			name: "entering false",
 			args: args{
 				source:   source,

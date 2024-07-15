@@ -81,22 +81,24 @@ func (r *MarkdownRenderer) renderText(
 	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.Text)
 	if entering {
-		if n.Parent().Kind() == ast.KindLink { // TODO needs nil check?
+		p := n.Parent()
+		if p == nil {
+			return ast.WalkContinue, nil
+		}
+		if p.Kind() == ast.KindLink {
 			// r.renderLink() renders text in advance. no rendering needed here.
 			return ast.WalkContinue, nil
 		}
 
-		value := n.Text(source)
-		w.WriteString(string(value))
+		w.WriteString(string(n.Text(source)))
 
 		if n.SoftLineBreak() {
-			pp := n.Parent().Parent()
-			switch pp := pp.(type) {
-			case *ast.ListItem: // ListItem - TextBlock - Text(SoftLineBreak)
-				w.WriteString("\n")
+			w.WriteString("\n")
+
+			pp := p.Parent()
+			if pp, ok := pp.(*ast.ListItem); ok {
+				// ListItem - TextBlock - Text(SoftLineBreak)
 				w.WriteString(strings.Repeat(" ", pp.Offset))
-			default:
-				w.WriteString("\n")
 			}
 		}
 	}
