@@ -5,10 +5,22 @@ import (
 	extast "github.com/yuin/goldmark/extension/ast"
 )
 
-func genHeaderNode(level int, isBlankSpacePrevious bool) ast.Node {
+func genHeaderNode(level int, setBlankSpacePreviousLines bool) ast.Node {
 	h := ast.NewHeading(level)
-	h.SetBlankPreviousLines(isBlankSpacePrevious)
+	h.SetBlankPreviousLines(setBlankSpacePreviousLines)
 	return h
+}
+
+func genTextNode(text []byte, setSoftLineBreak bool, parent ast.Node) ast.Node {
+	t := ast.NewText()
+	t.Segment.Start = 0
+	t.Segment.Stop = len(text)
+	t.SetSoftLineBreak(setSoftLineBreak)
+
+	if parent != nil {
+		parent.AppendChild(parent, t)
+	}
+	return t
 }
 
 func genLinkNode(text, destination []byte) ast.Node {

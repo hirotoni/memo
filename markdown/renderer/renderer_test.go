@@ -357,3 +357,115 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkdownRenderer_renderText(t *testing.T) {
+	type args struct {
+		source   []byte
+		node     ast.Node
+		entering bool
+	}
+	type wants struct {
+		status ast.WalkStatus
+		str    string
+		err    bool
+	}
+
+	source := []byte("test text")
+
+	offset := 2
+	li := ast.NewListItem(offset)
+	tb := ast.NewTextBlock()
+	tb.AppendChild(li, tb)
+
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{
+		{
+			name: "entering",
+			args: args{
+				source:   source,
+				node:     genTextNode(source, false, ast.NewTextBlock()),
+				entering: true,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    string(source),
+				err:    false,
+			},
+		},
+		{
+			name: "entering, soft line break",
+			args: args{
+				source:   source,
+				node:     genTextNode(source, true, ast.NewTextBlock()),
+				entering: true,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    string(source) + "\n",
+				err:    false,
+			},
+		},
+		{
+			name: "entering, parent link",
+			args: args{
+				source:   source,
+				node:     genTextNode(source, true, ast.NewLink()),
+				entering: true,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "",
+				err:    false,
+			},
+		},
+		{
+			name: "entering, parent parent listitem",
+			args: args{
+				source:   source,
+				node:     genTextNode(source, true, tb),
+				entering: true,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    string(source) + "\n" + strings.Repeat(" ", offset),
+				err:    false,
+			},
+		},
+		{
+			name: "entering false",
+			args: args{
+				source:   source,
+				node:     genTextNode(source, false, ast.NewTextBlock()),
+				entering: false,
+			},
+			wants: wants{
+				status: ast.WalkContinue,
+				str:    "",
+				err:    false,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
+			r := NewMarkdownRenderer()
+			sb := new(strings.Builder)
+			w := bufio.NewWriter(sb)
+
+			got, err := r.renderText(w, tt.args.source, tt.args.node, tt.args.entering)
+			if (err != nil) != tt.wants.err {
+				t.Errorf("MarkdownRenderer.renderText() error = %v, wantErr %v", err, tt.wants.err)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.wants.status) {
+				t.Errorf("MarkdownRenderer.renderText() = %v, want %v", got, tt.wants.status)
+			}
+
+			assert.NoError(w.Flush())
+			assert.Equal(tt.wants.str, sb.String())
+		})
+	}
+}

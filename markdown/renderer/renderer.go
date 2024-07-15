@@ -33,7 +33,6 @@ func (r *MarkdownRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 	reg.Register(ast.KindParagraph, r.renderParagraph)
 	reg.Register(ast.KindTextBlock, r.renderTextBlock)
 	// reg.Register(ast.KindThematicBreak, r.renderThematicBreak)
-	reg.Register(extast.KindTaskCheckBox, r.renderTaskCheckBox)
 
 	// // inlines
 	reg.Register(ast.KindAutoLink, r.renderAutoLink)
@@ -44,6 +43,7 @@ func (r *MarkdownRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 	// reg.Register(ast.KindRawHTML, r.renderRawHTML)
 	reg.Register(ast.KindText, r.renderText)
 	// reg.Register(ast.KindString, r.renderString)
+	reg.Register(extast.KindTaskCheckBox, r.renderTaskCheckBox)
 }
 
 // MARK: blocks
@@ -92,7 +92,7 @@ func (r *MarkdownRenderer) renderText(
 		if n.SoftLineBreak() {
 			pp := n.Parent().Parent()
 			switch pp := pp.(type) {
-			case *ast.ListItem: // List - ListItem - Text(SoftLineBreak)
+			case *ast.ListItem: // ListItem - TextBlock - Text(SoftLineBreak)
 				w.WriteString("\n")
 				w.WriteString(strings.Repeat(" ", pp.Offset))
 			default:
