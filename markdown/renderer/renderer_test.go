@@ -29,7 +29,7 @@ func TestMarkdownRenderer_renderHeading(t *testing.T) {
 		{
 			name: "entering, level 1",
 			args: args{
-				node:     generateHeader(1, false),
+				node:     genHeaderNode(1, false),
 				entering: true,
 			},
 			wants: wants{
@@ -41,7 +41,7 @@ func TestMarkdownRenderer_renderHeading(t *testing.T) {
 		{
 			name: "exiting, level 1",
 			args: args{
-				node:     generateHeader(1, false),
+				node:     genHeaderNode(1, false),
 				entering: false,
 			},
 			wants: wants{
@@ -53,7 +53,7 @@ func TestMarkdownRenderer_renderHeading(t *testing.T) {
 		{
 			name: "entering, level 6",
 			args: args{
-				node:     generateHeader(6, false),
+				node:     genHeaderNode(6, false),
 				entering: true,
 			},
 			wants: wants{
@@ -65,7 +65,7 @@ func TestMarkdownRenderer_renderHeading(t *testing.T) {
 		{
 			name: "entering, blank previous lines",
 			args: args{
-				node:     generateHeader(1, true),
+				node:     genHeaderNode(1, true),
 				entering: true,
 			},
 			wants: wants{
@@ -77,7 +77,7 @@ func TestMarkdownRenderer_renderHeading(t *testing.T) {
 		{
 			name: "exiting, blank previous lines",
 			args: args{
-				node:     generateHeader(1, true),
+				node:     genHeaderNode(1, true),
 				entering: false,
 			},
 			wants: wants{
@@ -129,12 +129,12 @@ func TestMarkdownRenderer_renderEmphasis(t *testing.T) {
 	}{
 		{
 			name:  "entering true",
-			args:  args{node: generateEmphasis(1), entering: true},
+			args:  args{node: genEnphasisNode(1), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "*", err: false},
 		},
 		{
 			name:  "entering false",
-			args:  args{node: generateEmphasis(1), entering: false},
+			args:  args{node: genEnphasisNode(1), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "*", err: false},
 		},
 	}
@@ -182,22 +182,22 @@ func TestMarkdownRenderer_renderTaskCheckBox(t *testing.T) {
 	}{
 		{
 			name:  "isChecked true, entering true",
-			args:  args{node: generateTaskCheckBox(true), entering: true},
+			args:  args{node: genTaskCheckBoxNode(true), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "[x] ", err: false},
 		},
 		{
 			name:  "isChecked false, entering true",
-			args:  args{node: generateTaskCheckBox(false), entering: true},
+			args:  args{node: genTaskCheckBoxNode(false), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "[ ] ", err: false},
 		},
 		{
 			name:  "isChecked true, entering false",
-			args:  args{node: generateTaskCheckBox(true), entering: false},
+			args:  args{node: genTaskCheckBoxNode(true), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
 			name:  "isChecked false, entering false",
-			args:  args{node: generateTaskCheckBox(false), entering: false},
+			args:  args{node: genTaskCheckBoxNode(false), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
@@ -245,7 +245,7 @@ func TestMarkdownRenderer_renderLink(t *testing.T) {
 			name: "entering true",
 			args: args{
 				source:   []byte("text"),
-				node:     generateLink([]byte("text"), []byte("destination")),
+				node:     genLinkNode([]byte("text"), []byte("destination")),
 				entering: true,
 			},
 			wants: wants{
@@ -258,7 +258,7 @@ func TestMarkdownRenderer_renderLink(t *testing.T) {
 			name: "entering false",
 			args: args{
 				source:   []byte("text"),
-				node:     generateLink([]byte("text"), []byte("destination")),
+				node:     genLinkNode([]byte("text"), []byte("destination")),
 				entering: false,
 			},
 			wants: wants{
@@ -313,7 +313,7 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 			name: "entering true",
 			args: args{
 				source:   source,
-				node:     generateAutoLink(source),
+				node:     genAutoLinkNode(source),
 				entering: true,
 			},
 			wants: wants{
@@ -326,7 +326,7 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 			name: "entering false",
 			args: args{
 				source:   source,
-				node:     generateAutoLink(source),
+				node:     genAutoLinkNode(source),
 				entering: false,
 			},
 			wants: wants{

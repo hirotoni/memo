@@ -5,13 +5,13 @@ import (
 	extast "github.com/yuin/goldmark/extension/ast"
 )
 
-func generateHeader(level int, isBlankSpacePrevious bool) ast.Node {
+func genHeaderNode(level int, isBlankSpacePrevious bool) ast.Node {
 	h := ast.NewHeading(level)
 	h.SetBlankPreviousLines(isBlankSpacePrevious)
 	return h
 }
 
-func generateLink(text, destination []byte) ast.Node {
+func genLinkNode(text, destination []byte) ast.Node {
 	nl := ast.NewLink()
 	nl.Destination = destination
 
@@ -24,7 +24,7 @@ func generateLink(text, destination []byte) ast.Node {
 	return nl
 }
 
-func generateAutoLink(text []byte) ast.Node {
+func genAutoLinkNode(text []byte) ast.Node {
 	// segment
 	t := ast.NewText()
 	t.Segment.Start = 0
@@ -35,10 +35,10 @@ func generateAutoLink(text []byte) ast.Node {
 	return al
 }
 
-func generateTaskCheckBox(checked bool) ast.Node {
+func genTaskCheckBoxNode(checked bool) ast.Node {
 	return extast.NewTaskCheckBox(checked)
 }
 
-func generateEmphasis(level int) ast.Node {
+func genEnphasisNode(level int) ast.Node {
 	return ast.NewEmphasis(level)
 }
