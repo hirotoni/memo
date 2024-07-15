@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yuin/goldmark/ast"
-	extast "github.com/yuin/goldmark/extension/ast"
 )
 
 func TestMarkdownRenderer_renderHeading(t *testing.T) {
@@ -97,12 +96,12 @@ func TestMarkdownRenderer_renderEmphasis(t *testing.T) {
 	}{
 		{
 			name:  "entering true",
-			args:  args{node: &ast.Emphasis{Level: 1}, entering: true},
+			args:  args{node: generateEmphasis(1), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "*", err: false},
 		},
 		{
 			name:  "entering false",
-			args:  args{node: &ast.Emphasis{Level: 1}, entering: false},
+			args:  args{node: generateEmphasis(1), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "*", err: false},
 		},
 	}
@@ -149,22 +148,22 @@ func TestMarkdownRenderer_renderTaskCheckBox(t *testing.T) {
 	}{
 		{
 			name:  "isChecked true, entering true",
-			args:  args{node: &extast.TaskCheckBox{IsChecked: true}, entering: true},
+			args:  args{node: generateTaskCheckBox(true), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "[x] ", err: false},
 		},
 		{
 			name:  "isChecked false, entering true",
-			args:  args{node: &extast.TaskCheckBox{IsChecked: false}, entering: true},
+			args:  args{node: generateTaskCheckBox(false), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "[ ] ", err: false},
 		},
 		{
 			name:  "isChecked true, entering false",
-			args:  args{node: &extast.TaskCheckBox{IsChecked: true}, entering: false},
+			args:  args{node: generateTaskCheckBox(true), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
 			name:  "isChecked false, entering false",
-			args:  args{node: &extast.TaskCheckBox{IsChecked: false}, entering: false},
+			args:  args{node: generateTaskCheckBox(false), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
@@ -200,20 +199,6 @@ func TestMarkdownRenderer_renderLink(t *testing.T) {
 		status ast.WalkStatus
 		str    string
 		err    bool
-	}
-
-	// test data helper
-	generateLink := func(text, destination []byte) ast.Node {
-		nl := ast.NewLink()
-		nl.Destination = destination
-
-		// segment
-		t := ast.NewText()
-		t.Segment.Start = 0
-		t.Segment.Stop = len(text)
-		nl.AppendChild(nl, t)
-
-		return nl
 	}
 
 	tests := []struct {
@@ -281,19 +266,7 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 		err    bool
 	}
 
-	// test data helper
-	generateAutoLink := func(text []byte) ast.Node {
-		// segment
-		t := ast.NewText()
-		t.Segment.Start = 0
-		t.Segment.Stop = len(text)
-
-		al := ast.NewAutoLink(ast.AutoLinkURL, t)
-
-		return al
-	}
-
-	testSource := []byte("https://example.com")
+	source := []byte("https://example.com")
 
 	tests := []struct {
 		name  string
@@ -303,8 +276,8 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 		{
 			name: "entering true",
 			args: args{
-				source:   testSource,
-				node:     generateAutoLink(testSource),
+				source:   source,
+				node:     generateAutoLink(source),
 				entering: true,
 			},
 			wants: wants{
@@ -316,8 +289,8 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 		{
 			name: "entering false",
 			args: args{
-				source:   testSource,
-				node:     generateAutoLink(testSource),
+				source:   source,
+				node:     generateAutoLink(source),
 				entering: false,
 			},
 			wants: wants{
