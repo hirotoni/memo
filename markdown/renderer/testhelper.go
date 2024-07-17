@@ -66,3 +66,7 @@ func genListNode(marker byte, setBlankSpacePreviousLines bool) ast.Node {
 	l.SetBlankPreviousLines(setBlankSpacePreviousLines)
 	return l
 }
+
+func genDocument() ast.Node {
+	return ast.NewDocument()
+}
