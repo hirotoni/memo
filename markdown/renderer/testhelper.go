@@ -60,3 +60,9 @@ func genParagraphNode(setBlankSpacePreviousLines bool) ast.Node {
 	p.SetBlankPreviousLines(setBlankSpacePreviousLines)
 	return p
 }
+
+func genListNode(marker byte, setBlankSpacePreviousLines bool) ast.Node {
+	l := ast.NewList(marker)
+	l.SetBlankPreviousLines(setBlankSpacePreviousLines)
+	return l
+}
