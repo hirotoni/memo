@@ -27,64 +27,29 @@ func TestMarkdownRenderer_renderHeading(t *testing.T) {
 		wants wants
 	}{
 		{
-			name: "entering, level 1",
-			args: args{
-				node:     genHeaderNode(1, false),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "# ",
-				err:    false,
-			},
+			name:  "entering, level 1",
+			args:  args{node: genHeaderNode(1, false), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "# ", err: false},
 		},
 		{
-			name: "exiting, level 1",
-			args: args{
-				node:     genHeaderNode(1, false),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "exiting, level 1",
+			args:  args{node: genHeaderNode(1, false), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
-			name: "entering, level 6",
-			args: args{
-				node:     genHeaderNode(6, false),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "###### ",
-				err:    false,
-			},
+			name:  "entering, level 6",
+			args:  args{node: genHeaderNode(6, false), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "###### ", err: false},
 		},
 		{
-			name: "entering, blank previous lines",
-			args: args{
-				node:     genHeaderNode(1, true),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "\n\n# ",
-				err:    false,
-			},
+			name:  "entering, blank previous lines",
+			args:  args{node: genHeaderNode(1, true), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "\n\n# ", err: false},
 		},
 		{
-			name: "exiting, blank previous lines",
-			args: args{
-				node:     genHeaderNode(1, true),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "exiting, blank previous lines",
+			args:  args{node: genHeaderNode(1, true), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
 	for _, tt := range tests {
@@ -226,7 +191,6 @@ func TestMarkdownRenderer_renderTaskCheckBox(t *testing.T) {
 
 func TestMarkdownRenderer_renderLink(t *testing.T) {
 	type args struct {
-		source   []byte
 		node     ast.Node
 		entering bool
 	}
@@ -236,36 +200,22 @@ func TestMarkdownRenderer_renderLink(t *testing.T) {
 		err    bool
 	}
 
+	source := []byte("text")
+
 	tests := []struct {
 		name  string
 		args  args
 		wants wants
 	}{
 		{
-			name: "entering true",
-			args: args{
-				source:   []byte("text"),
-				node:     genLinkNode([]byte("text"), []byte("destination")),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "[text](destination)",
-				err:    false,
-			},
+			name:  "entering true",
+			args:  args{node: genLinkNode([]byte("text"), []byte("destination")), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "[text](destination)", err: false},
 		},
 		{
-			name: "entering false",
-			args: args{
-				source:   []byte("text"),
-				node:     genLinkNode([]byte("text"), []byte("destination")),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering false",
+			args:  args{node: genLinkNode([]byte("text"), []byte("destination")), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
 	for _, tt := range tests {
@@ -275,7 +225,7 @@ func TestMarkdownRenderer_renderLink(t *testing.T) {
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
 
-			got, err := r.renderLink(w, tt.args.source, tt.args.node, tt.args.entering)
+			got, err := r.renderLink(w, source, tt.args.node, tt.args.entering)
 			if (err != nil) != tt.wants.err {
 				t.Errorf("MarkdownRenderer.renderLink() error = %v, wantErr %v", err, tt.wants.err)
 				return
@@ -292,7 +242,6 @@ func TestMarkdownRenderer_renderLink(t *testing.T) {
 
 func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 	type args struct {
-		source   []byte
 		node     ast.Node
 		entering bool
 	}
@@ -310,30 +259,14 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 		wants wants
 	}{
 		{
-			name: "entering true",
-			args: args{
-				source:   source,
-				node:     genAutoLinkNode(source),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "https://example.com",
-				err:    false,
-			},
+			name:  "entering true",
+			args:  args{node: genAutoLinkNode(source), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "https://example.com", err: false},
 		},
 		{
-			name: "entering false",
-			args: args{
-				source:   source,
-				node:     genAutoLinkNode(source),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering false",
+			args:  args{node: genAutoLinkNode(source), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
 	for _, tt := range tests {
@@ -343,7 +276,7 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
 
-			got, err := r.renderAutoLink(w, tt.args.source, tt.args.node, tt.args.entering)
+			got, err := r.renderAutoLink(w, source, tt.args.node, tt.args.entering)
 			if (err != nil) != tt.wants.err {
 				t.Errorf("MarkdownRenderer.renderAutoLink() error = %v, wantErr %v", err, tt.wants.err)
 				return
@@ -360,7 +293,6 @@ func TestMarkdownRenderer_renderAutoLink(t *testing.T) {
 
 func TestMarkdownRenderer_renderText(t *testing.T) {
 	type args struct {
-		source   []byte
 		node     ast.Node
 		entering bool
 	}
@@ -383,82 +315,34 @@ func TestMarkdownRenderer_renderText(t *testing.T) {
 		wants wants
 	}{
 		{
-			name: "entering",
-			args: args{
-				source:   source,
-				node:     genTextNode(source, false, ast.NewTextBlock()),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    string(source),
-				err:    false,
-			},
+			name:  "entering",
+			args:  args{node: genTextNode(source, false, ast.NewTextBlock()), entering: true},
+			wants: wants{status: ast.WalkContinue, str: string(source), err: false},
 		},
 		{
-			name: "entering, soft line break",
-			args: args{
-				source:   source,
-				node:     genTextNode(source, true, ast.NewTextBlock()),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    string(source) + "\n",
-				err:    false,
-			},
+			name:  "entering, soft line break",
+			args:  args{node: genTextNode(source, true, ast.NewTextBlock()), entering: true},
+			wants: wants{status: ast.WalkContinue, str: string(source) + "\n", err: false},
 		},
 		{
-			name: "entering, parent link",
-			args: args{
-				source:   source,
-				node:     genTextNode(source, true, ast.NewLink()),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering, parent parent listitem",
+			args:  args{node: genTextNode(source, true, tb), entering: true},
+			wants: wants{status: ast.WalkContinue, str: string(source) + "\n" + strings.Repeat(" ", offset), err: false},
 		},
 		{
-			name: "entering, parent parent listitem",
-			args: args{
-				source:   source,
-				node:     genTextNode(source, true, tb),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    string(source) + "\n" + strings.Repeat(" ", offset),
-				err:    false,
-			},
+			name:  "entering, parent link",
+			args:  args{node: genTextNode(source, true, ast.NewLink()), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
-			name: "entering, parent nil",
-			args: args{
-				source:   source,
-				node:     genTextNode(source, true, nil),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering, parent nil",
+			args:  args{node: genTextNode(source, true, nil), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
-			name: "entering false",
-			args: args{
-				source:   source,
-				node:     genTextNode(source, false, ast.NewTextBlock()),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering false",
+			args:  args{node: genTextNode(source, false, ast.NewTextBlock()), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
 	for _, tt := range tests {
@@ -468,7 +352,7 @@ func TestMarkdownRenderer_renderText(t *testing.T) {
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
 
-			got, err := r.renderText(w, tt.args.source, tt.args.node, tt.args.entering)
+			got, err := r.renderText(w, source, tt.args.node, tt.args.entering)
 			if (err != nil) != tt.wants.err {
 				t.Errorf("MarkdownRenderer.renderText() error = %v, wantErr %v", err, tt.wants.err)
 				return
@@ -485,7 +369,6 @@ func TestMarkdownRenderer_renderText(t *testing.T) {
 
 func TestMarkdownRenderer_renderParagraph(t *testing.T) {
 	type args struct {
-		source   []byte
 		node     ast.Node
 		entering bool
 	}
@@ -503,43 +386,19 @@ func TestMarkdownRenderer_renderParagraph(t *testing.T) {
 		wants wants
 	}{
 		{
-			name: "entering",
-			args: args{
-				source:   source,
-				node:     genParagraphNode(false),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering",
+			args:  args{node: genParagraphNode(false), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
-			name: "entering, blank previous lines",
-			args: args{
-				source:   source,
-				node:     genParagraphNode(true),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "\n\n",
-				err:    false,
-			},
+			name:  "entering, blank previous lines",
+			args:  args{node: genParagraphNode(true), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "\n\n", err: false},
 		},
 		{
-			name: "exiting",
-			args: args{
-				source:   source,
-				node:     genParagraphNode(false),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "exiting",
+			args:  args{node: genParagraphNode(false), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
 	for _, tt := range tests {
@@ -549,7 +408,7 @@ func TestMarkdownRenderer_renderParagraph(t *testing.T) {
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
 
-			got, err := r.renderParagraph(w, tt.args.source, tt.args.node, tt.args.entering)
+			got, err := r.renderParagraph(w, source, tt.args.node, tt.args.entering)
 			if (err != nil) != tt.wants.err {
 				t.Errorf("MarkdownRenderer.renderParagraph() error = %v, wantErr %v", err, tt.wants.err)
 				return
@@ -566,7 +425,6 @@ func TestMarkdownRenderer_renderParagraph(t *testing.T) {
 
 func TestMarkdownRenderer_renderList(t *testing.T) {
 	type args struct {
-		source   []byte
 		node     ast.Node
 		entering bool
 	}
@@ -584,43 +442,19 @@ func TestMarkdownRenderer_renderList(t *testing.T) {
 		wants wants
 	}{
 		{
-			name: "entering",
-			args: args{
-				source:   source,
-				node:     genListNode(byte('.'), false),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering",
+			args:  args{node: genListNode(byte('.'), false), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
-			name: "entering, blank previous lines",
-			args: args{
-				source:   source,
-				node:     genListNode(byte('.'), true),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "\n\n",
-				err:    false,
-			},
+			name:  "entering, blank previous lines",
+			args:  args{node: genListNode(byte('.'), true), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "\n\n", err: false},
 		},
 		{
-			name: "exiting",
-			args: args{
-				source:   source,
-				node:     genListNode(byte('.'), false),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "exiting",
+			args:  args{node: genListNode(byte('.'), false), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
 	for _, tt := range tests {
@@ -630,7 +464,7 @@ func TestMarkdownRenderer_renderList(t *testing.T) {
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
 
-			got, err := r.renderList(w, tt.args.source, tt.args.node, tt.args.entering)
+			got, err := r.renderList(w, source, tt.args.node, tt.args.entering)
 			if (err != nil) != tt.wants.err {
 				t.Errorf("MarkdownRenderer.renderList() error = %v, wantErr %v", err, tt.wants.err)
 				return
@@ -647,7 +481,6 @@ func TestMarkdownRenderer_renderList(t *testing.T) {
 
 func TestMarkdownRenderer_renderDocument(t *testing.T) {
 	type args struct {
-		source   []byte
 		node     ast.Node
 		entering bool
 	}
@@ -665,30 +498,14 @@ func TestMarkdownRenderer_renderDocument(t *testing.T) {
 		wants wants
 	}{
 		{
-			name: "entering",
-			args: args{
-				source:   source,
-				node:     genDocumentNode(),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering",
+			args:  args{node: genDocumentNode(), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
-			name: "exiting",
-			args: args{
-				source:   source,
-				node:     genDocumentNode(),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "exiting",
+			args:  args{node: genDocumentNode(), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
 	for _, tt := range tests {
@@ -698,7 +515,7 @@ func TestMarkdownRenderer_renderDocument(t *testing.T) {
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
 
-			got, err := r.renderDocument(w, tt.args.source, tt.args.node, tt.args.entering)
+			got, err := r.renderDocument(w, source, tt.args.node, tt.args.entering)
 			if (err != nil) != tt.wants.err {
 				t.Errorf("MarkdownRenderer.renderDocument() error = %v, wantErr %v", err, tt.wants.err)
 				return
@@ -715,7 +532,6 @@ func TestMarkdownRenderer_renderDocument(t *testing.T) {
 
 func TestMarkdownRenderer_renderTextBlock(t *testing.T) {
 	type args struct {
-		source   []byte
 		node     ast.Node
 		entering bool
 	}
@@ -733,30 +549,14 @@ func TestMarkdownRenderer_renderTextBlock(t *testing.T) {
 		wants wants
 	}{
 		{
-			name: "entering",
-			args: args{
-				source:   source,
-				node:     genTextBlockNode(),
-				entering: true,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering",
+			args:  args{node: genTextBlockNode(), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
-			name: "exiting",
-			args: args{
-				source:   source,
-				node:     genTextBlockNode(),
-				entering: false,
-			},
-			wants: wants{
-				status: ast.WalkContinue,
-				str:    "",
-				err:    false,
-			},
+			name:  "entering false",
+			args:  args{node: genTextBlockNode(), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 	}
 	for _, tt := range tests {
@@ -766,7 +566,7 @@ func TestMarkdownRenderer_renderTextBlock(t *testing.T) {
 			sb := new(strings.Builder)
 			w := bufio.NewWriter(sb)
 
-			got, err := r.renderTextBlock(w, tt.args.source, tt.args.node, tt.args.entering)
+			got, err := r.renderTextBlock(w, source, tt.args.node, tt.args.entering)
 			if (err != nil) != tt.wants.err {
 				t.Errorf("MarkdownRenderer.renderTextBlock() error = %v, wantErr %v", err, tt.wants.err)
 				return
