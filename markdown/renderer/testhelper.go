@@ -54,3 +54,9 @@ func genTaskCheckBoxNode(checked bool) ast.Node {
 func genEnphasisNode(level int) ast.Node {
 	return ast.NewEmphasis(level)
 }
+
+func genParagraphNode(setBlankSpacePreviousLines bool) ast.Node {
+	p := ast.NewParagraph()
+	p.SetBlankPreviousLines(setBlankSpacePreviousLines)
+	return p
+}
