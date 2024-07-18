@@ -102,6 +102,16 @@ func TestMarkdownRenderer_renderEmphasis(t *testing.T) {
 			args:  args{node: genEnphasisNode(1), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "*", err: false},
 		},
+		{
+			name:  "entering true, level 2",
+			args:  args{node: genEnphasisNode(2), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "**", err: false},
+		},
+		{
+			name:  "entering false, level 2",
+			args:  args{node: genEnphasisNode(2), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "**", err: false},
+		},
 	}
 
 	for _, tt := range tests {
