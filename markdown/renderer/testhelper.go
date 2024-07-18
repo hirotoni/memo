@@ -74,3 +74,50 @@ func genDocumentNode() ast.Node {
 func genTextBlockNode() ast.Node {
 	return ast.NewTextBlock()
 }
+
+func genListItemNode(num int, marker byte, offset int) []*ast.ListItem {
+	lil := make([]*ast.ListItem, num)
+	for i := range lil {
+		lil[i] = ast.NewListItem(offset)
+		if i > 0 {
+			lil[i-1].SetNextSibling(lil[i])
+		}
+	}
+
+	// parents
+	doc := ast.NewDocument()
+	l := ast.NewList(marker)
+	l.Start = 1
+
+	doc.AppendChild(doc, l)
+	for _, li := range lil {
+		l.AppendChild(l, li)
+	}
+	return lil
+}
+
+func genNestedListItemNode(num int, marker byte, offset int) []*ast.ListItem {
+	lil := make([]*ast.ListItem, num)
+	for i := range lil {
+		lil[i] = ast.NewListItem(offset)
+		if i > 0 {
+			lil[i-1].SetNextSibling(lil[i])
+		}
+	}
+
+	// parents
+	doc := ast.NewDocument()
+	middlel := ast.NewList(marker)
+	middleli := ast.NewListItem(offset)
+	l := ast.NewList(marker)
+	l.Start = 1
+
+	doc.AppendChild(doc, middlel)
+	middlel.AppendChild(middlel, middleli)
+	middleli.AppendChild(middleli, l)
+
+	for _, li := range lil {
+		l.AppendChild(l, li)
+	}
+	return lil
+}
