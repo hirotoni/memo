@@ -5,6 +5,14 @@ import (
 	extast "github.com/yuin/goldmark/extension/ast"
 )
 
+// safeGroundParent returns the parent of the parent of the node ensuring nil safe.
+func safeGroundParent(n ast.Node) ast.Node {
+	if n.Parent() == nil {
+		return nil
+	}
+	return n.Parent().Parent()
+}
+
 func genHeaderNode(level int, setBlankSpacePreviousLines bool) ast.Node {
 	h := ast.NewHeading(level)
 	h.SetBlankPreviousLines(setBlankSpacePreviousLines)

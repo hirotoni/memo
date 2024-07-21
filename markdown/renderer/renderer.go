@@ -120,38 +120,43 @@ func (r *MarkdownRenderer) renderListItem(
 	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.ListItem)
 
+	// at least there must be a parent and a grandparent
+	// e.g. Document - List - ListItem
+	p := n.Parent()
+	if p == nil {
+		return ast.WalkContinue, nil
+	}
+	pp := p.Parent()
+	if pp == nil {
+		return ast.WalkContinue, nil
+	}
+
 	if entering {
-		// リストの最初の要素でない場合、あるいは入れ子のリスト要素である場合は改行する
-		if n.PreviousSibling() != nil || n.Parent().Parent().Kind() == ast.KindListItem {
+		// If it is not the first element of the list or it is a nested listitems, add a line break
+		if n.PreviousSibling() != nil || pp.Kind() == ast.KindListItem {
 			w.WriteString("\n")
 		}
 
-		// 入れ子になっている分、インデントを増やす
-		var cur = n.Parent().Parent()
-		for {
-			if li, ok := cur.(*ast.ListItem); ok {
+		// Increase the indent for nested lists
+		curpp := pp
+		for curpp != nil {
+			li, ok := curpp.(*ast.ListItem)
+			if ok {
 				w.WriteString(strings.Repeat(" ", li.Offset))
-				cur = cur.Parent().Parent()
-			} else {
-				break
 			}
+			curpp = safeGroundParent(curpp)
 		}
 
-		p := n.Parent().(*ast.List)
-		if p.IsOrdered() {
-			order := p.Start
-			cur := node
-			for {
-				if cur.PreviousSibling() != nil {
+		if p, ok := p.(*ast.List); ok {
+			if p.IsOrdered() {
+				order := p.Start
+				for node.PreviousSibling() != nil {
 					order++
-					cur = cur.PreviousSibling()
-				} else {
-					break
+					node = node.PreviousSibling()
 				}
+				w.WriteString(fmt.Sprintf("%d", order))
 			}
-			w.WriteString(fmt.Sprintf("%d", order))
-			w.WriteString(string(p.Marker) + " ")
-		} else {
+
 			w.WriteString(string(p.Marker) + " ")
 		}
 	}
