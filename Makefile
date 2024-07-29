@@ -17,3 +17,7 @@ weekly: ## Create weekly report
 .PHONY: tips
 tips: ## Generate tips index
 	go run . tips
+
+.PHONY: test
+test: ## Run tests
+	go test ./... -cover
