@@ -88,7 +88,7 @@ func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(source []byte, heading
 	)
 
 	var foundHeading ast.Node
-	var resultNodes []ast.Node
+	var hangingNodes []ast.Node
 	var mode = modeSearching
 
 loop:
@@ -106,7 +106,7 @@ loop:
 				if c.(*ast.Heading).Level <= heading.Level {
 					break loop
 				} else {
-					resultNodes = append(resultNodes, c)
+					hangingNodes = append(hangingNodes, c)
 				}
 			}
 		} else {
@@ -114,12 +114,12 @@ loop:
 			case modeSearching:
 				continue
 			case modeExiting:
-				resultNodes = append(resultNodes, c)
+				hangingNodes = append(hangingNodes, c)
 			}
 		}
 	}
 
-	return foundHeading, resultNodes
+	return foundHeading, hangingNodes
 }
 
 // InsertNodesAfter inserts nodes to document at target position, and returns updated byte array of document as the result of the insert operation
