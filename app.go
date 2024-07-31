@@ -17,6 +17,7 @@ import (
 	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
 	"github.com/hirotoni/memo/repos"
+	"github.com/hirotoni/memo/usecases"
 	"github.com/yuin/goldmark/ast"
 )
 
@@ -46,14 +47,14 @@ func (app *App) Initialize() {
 	// dailymemo dir
 	initializeDir(app.config.DailymemoDir())
 	// dailymemo template file
-	initializeFile(app.config.DailymemoTemplateFile(), models.TemplateDailymemo)
+	initializeFile(app.config.DailymemoTemplateFile(), usecases.TemplateDailymemo)
 
 	// tips dir
 	initializeDir(app.config.TipsDir())
 	// tips template file
-	initializeFile(app.config.TipsTemplateFile(), models.TemplateTips)
+	initializeFile(app.config.TipsTemplateFile(), usecases.TemplateTips)
 	// tips index file
-	initializeFile(app.config.TipsIndexFile(), models.TemplateTipsIndex)
+	initializeFile(app.config.TipsIndexFile(), usecases.TemplateTipsIndex)
 }
 
 func initializeFile(filepath string, template models.Template) {
@@ -65,7 +66,7 @@ func initializeFile(filepath string, template models.Template) {
 		}
 		defer f.Close()
 
-		f.WriteString(template.String())
+		f.WriteString(usecases.GenerateTemplateString(template))
 
 		log.Printf("file initialized: %s", filepath)
 	}
@@ -102,11 +103,11 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 		}
 
 		// inherit todos from previous memo
-		b = app.inheritHeading(b, models.HEADING_NAME_TODOS)
-		b = app.inheritHeading(b, models.HEADING_NAME_WANTTODOS)
+		b = app.inheritHeading(b, usecases.HEADING_NAME_TODOS)
+		b = app.inheritHeading(b, usecases.HEADING_NAME_WANTTODOS)
 		b = app.appendTips(b)
 
-		b = app.gmw.InsertTextAfter(b, models.HEADING_NAME_TITLE, today)
+		b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, today)
 
 		f.Write(b)
 	}
@@ -160,7 +161,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 			log.Fatal(err)
 		}
 
-		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(b, models.HEADING_NAME_MEMOS)
+		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(b, usecases.HEADING_NAME_MEMOS)
 
 		var order = 0
 		for _, node := range hangingNodes {
@@ -189,7 +190,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 	}
 	defer f.Close()
 
-	f.WriteString(models.TemplateWeeklyReport.String() + "\n")
+	f.WriteString(usecases.GenerateTemplateString(usecases.TemplateWeeklyReport) + "\n")
 	f.WriteString(sb.String())
 
 	if openEditor {
@@ -257,8 +258,8 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	tipsb := []byte(models.TemplateTipsIndex.String())
-	tipsb = app.gmw.InsertTextAfter(tipsb, models.HEADING_NAME_TIPSINDEX, buf.String())
+	tipsb := []byte(usecases.GenerateTemplateString(usecases.TemplateTipsIndex))
+	tipsb = app.gmw.InsertTextAfter(tipsb, usecases.HEADING_NAME_TIPSINDEX, buf.String())
 	f.Write(tipsb)
 
 	return picked
@@ -304,7 +305,7 @@ func (app *App) appendTips(tb []byte) []byte {
 			picked.Text,
 			picked.Destination,
 		))
-		tb = app.gmw.InsertTextAfter(tb, models.HEADING_NAME_TITLE, chosenTip)
+		tb = app.gmw.InsertTextAfter(tb, usecases.HEADING_NAME_TITLE, chosenTip)
 	}
 
 	return tb

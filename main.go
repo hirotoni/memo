@@ -62,7 +62,7 @@ func init() {
 			})
 		}
 		sb.WriteString("\n")
-		fmt.Fprintf(flag.CommandLine.Output(), sb.String())
+		fmt.Fprint(flag.CommandLine.Output(), sb.String())
 	}
 	flag.Parse()
 }
