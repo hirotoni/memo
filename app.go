@@ -22,9 +22,10 @@ import (
 )
 
 const (
-	TIMEZONE     = "Asia/Tokyo"
-	LAYOUT       = "2006-01-02-Mon"
-	LAYOUT_REGEX = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
+	TIMEZONE        = "Asia/Tokyo"
+	LAYOUT          = "2006-01-02-Mon"
+	FILENAME_REGEX  = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
+	FILENAME_FORMAT = "%s.md"
 
 	// number of dates to seek back when inheriting todos from previous days
 	DAYS_TO_SEEK = 10
@@ -44,16 +45,12 @@ func NewApp() App {
 
 // Initialize initializes dirs and files
 func (app *App) Initialize() {
-	// dailymemo dir
+	// dailymemo
 	initializeDir(app.config.DailymemoDir())
-	// dailymemo template file
 	initializeFile(app.config.DailymemoTemplateFile(), usecases.TemplateDailymemo)
-
-	// tips dir
+	// tips
 	initializeDir(app.config.TipsDir())
-	// tips template file
 	initializeFile(app.config.TipsTemplateFile(), usecases.TemplateTips)
-	// tips index file
 	initializeFile(app.config.TipsIndexFile(), usecases.TemplateTipsIndex)
 }
 
@@ -85,7 +82,8 @@ func initializeDir(dirpath string) {
 // OpenTodaysMemo opens today's memo
 func (app *App) OpenTodaysMemo(truncate bool) {
 	today := time.Now().Format(LAYOUT)
-	targetFile := filepath.Join(app.config.DailymemoDir(), today+".md")
+	filename := fmt.Sprintf(FILENAME_FORMAT, today)
+	targetFile := filepath.Join(app.config.DailymemoDir(), filename)
 
 	log.Default().Printf("truncate: %v", truncate)
 
@@ -97,19 +95,7 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 		}
 		defer f.Close()
 
-		b, err := os.ReadFile(app.config.DailymemoTemplateFile())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// inherit todos from previous memo
-		b = app.inheritHeading(b, usecases.HEADING_NAME_TODOS)
-		b = app.inheritHeading(b, usecases.HEADING_NAME_WANTTODOS)
-		b = app.appendTips(b)
-
-		b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, today)
-
-		f.Write(b)
+		f.Write(app.generateTodaysMemo(today))
 	}
 
 	// open memo dir with editor
@@ -117,6 +103,68 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (app *App) generateTodaysMemo(today string) []byte {
+	b, err := os.ReadFile(app.config.DailymemoTemplateFile())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// inherit todos and wanttodos from previous memo
+	b = app.inheritHeading(b, usecases.HEADING_NAME_TODOS)
+	b = app.inheritHeading(b, usecases.HEADING_NAME_WANTTODOS)
+	b = app.appendTips(b)
+
+	b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, today)
+
+	return b
+}
+
+// inheritHeading inherits todos from previous day's memo
+func (app *App) inheritHeading(tb []byte, heading markdown.Heading) []byte {
+	// previous days
+	today := time.Now()
+	for i := range make([]int, DAYS_TO_SEEK) {
+		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
+		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
+		if errors.Is(err, os.ErrNotExist) {
+			if i+1 == DAYS_TO_SEEK {
+				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
+			}
+			continue
+		} else if err != nil {
+			log.Fatal(err)
+		}
+
+		_, nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pb, heading)
+		tb = app.gmw.InsertNodesAfter(tb, heading, pb, nodesToInsert)
+		break
+	}
+
+	return tb
+}
+
+// appendTips appends tips
+func (app *App) appendTips(tb []byte) []byte {
+	// tips are the things that you want to remember periodically such as
+	// - ER diagrams, component diagrams, constants of application you are in charge
+	// - product management, development process knowledge
+	// - bookmarks, web links
+	// - life sayings, someone's sayings
+
+	picked := app.saveTips(true)
+
+	// insert todays tip
+	if picked.Destination != "" {
+		chosenTip := markdown.BuildList(markdown.BuildLink(
+			picked.Text,
+			picked.Destination,
+		))
+		tb = app.gmw.InsertTextAfter(tb, usecases.HEADING_NAME_TITLE, chosenTip)
+	}
+
+	return tb
 }
 
 // WeeklyReport generates weekly report file
@@ -127,7 +175,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 	}
 
 	wantfiles := []string{}
-	reg := regexp.MustCompile(LAYOUT_REGEX)
+	reg := regexp.MustCompile(FILENAME_REGEX)
 	for _, file := range entries {
 		if reg.MatchString(file.Name()) {
 			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir(), file.Name()))
@@ -263,52 +311,6 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 	f.Write(tipsb)
 
 	return picked
-}
-
-// inheritHeading inherits todos from previous day's memo
-func (app *App) inheritHeading(tb []byte, heading markdown.Heading) []byte {
-	// previous days
-	today := time.Now()
-	for i := range make([]int, DAYS_TO_SEEK) {
-		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
-		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
-		if errors.Is(err, os.ErrNotExist) {
-			if i+1 == DAYS_TO_SEEK {
-				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
-			}
-			continue
-		} else if err != nil {
-			log.Fatal(err)
-		}
-
-		_, nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pb, heading)
-		tb = app.gmw.InsertNodesAfter(tb, heading, pb, nodesToInsert)
-		break
-	}
-
-	return tb
-}
-
-// appendTips appends tips
-func (app *App) appendTips(tb []byte) []byte {
-	// tips are the things that you want to remember periodically such as
-	// - ER diagrams, component diagrams, constants of application you are in charge
-	// - product management, development process knowledge
-	// - bookmarks, web links
-	// - life sayings, someone's sayings
-
-	picked := app.saveTips(true)
-
-	// insert todays tip
-	if picked.Destination != "" {
-		chosenTip := markdown.BuildList(markdown.BuildLink(
-			picked.Text,
-			picked.Destination,
-		))
-		tb = app.gmw.InsertTextAfter(tb, usecases.HEADING_NAME_TITLE, chosenTip)
-	}
-
-	return tb
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {
