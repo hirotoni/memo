@@ -13,8 +13,12 @@ type Heading struct {
 func Text2tag(text string) string {
 	var tag = text
 	tag = strings.ReplaceAll(tag, " ", "-")
-	tag = strings.ReplaceAll(tag, "#", "")
-	tag = strings.ReplaceAll(tag, ".", "")
+
+	halfwidthchars := strings.Split("#.", "")
+	for _, c := range halfwidthchars {
+		tag = strings.ReplaceAll(tag, c, "")
+	}
+
 	fullwidthchars := strings.Split("　！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？【】『』《》〔〕［］‹›«»〘〙〚〛", "")
 	for _, c := range fullwidthchars {
 		tag = strings.ReplaceAll(tag, c, "")
