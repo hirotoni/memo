@@ -133,3 +133,7 @@ func genNestedListItemNode(num int, marker byte, offset int) []*ast.ListItem {
 func genThematicBreakNode() ast.Node {
 	return ast.NewThematicBreak()
 }
+
+func genCodeSpan() ast.Node {
+	return ast.NewCodeSpan()
+}
