@@ -660,3 +660,54 @@ func TestMarkdownRenderer_renderListItem(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkdownRenderer_renderThematicBreak(t *testing.T) {
+	type args struct {
+		node     ast.Node
+		entering bool
+	}
+	type wants struct {
+		status ast.WalkStatus
+		str    string
+		err    bool
+	}
+
+	source := []byte("test text")
+
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{
+		{
+			name:  "entering",
+			args:  args{node: genThematicBreakNode(), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "\n\n---", err: false},
+		},
+		{
+			name:  "entering false",
+			args:  args{node: genThematicBreakNode(), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "", err: false},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
+			r := &MarkdownRenderer{}
+			sb := new(strings.Builder)
+			w := bufio.NewWriter(sb)
+
+			got, err := r.renderThematicBreak(w, source, tt.args.node, tt.args.entering)
+			if (err != nil) != tt.wants.err {
+				t.Errorf("MarkdownRenderer.renderThematicBreak() error = %v, wantErr %v", err, tt.wants.err)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.wants.status) {
+				t.Errorf("MarkdownRenderer.renderThematicBreak() = %v, want %v", got, tt.wants.status)
+			}
+
+			assert.NoError(w.Flush())
+			assert.Equal(tt.wants.str, sb.String())
+		})
+	}
+}

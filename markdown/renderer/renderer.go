@@ -32,7 +32,7 @@ func (r *MarkdownRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 	reg.Register(ast.KindListItem, r.renderListItem)
 	reg.Register(ast.KindParagraph, r.renderParagraph)
 	reg.Register(ast.KindTextBlock, r.renderTextBlock)
-	// reg.Register(ast.KindThematicBreak, r.renderThematicBreak)
+	reg.Register(ast.KindThematicBreak, r.renderThematicBreak)
 
 	// // inlines
 	reg.Register(ast.KindAutoLink, r.renderAutoLink)
@@ -167,6 +167,14 @@ func (r *MarkdownRenderer) renderTextBlock(
 	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	// n := node.(*ast.TextBlock)
 	// nothing to do
+	return ast.WalkContinue, nil
+}
+
+func (r *MarkdownRenderer) renderThematicBreak(
+	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	if entering {
+		w.WriteString("\n\n---")
+	}
 	return ast.WalkContinue, nil
 }
 

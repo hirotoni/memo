@@ -129,3 +129,7 @@ func genNestedListItemNode(num int, marker byte, offset int) []*ast.ListItem {
 	}
 	return lil
 }
+
+func genThematicBreakNode() ast.Node {
+	return ast.NewThematicBreak()
+}
