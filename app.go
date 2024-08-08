@@ -161,7 +161,7 @@ func (app *App) appendTips(tb []byte) []byte {
 			picked.Text,
 			picked.Destination,
 		))
-		tb = app.gmw.InsertTextAfter(tb, usecases.HEADING_NAME_TITLE, chosenTip)
+		tb = app.gmw.InsertTextAfter(tb, usecases.HEADING_NAME_TODAYSTIP, chosenTip)
 	}
 
 	return tb

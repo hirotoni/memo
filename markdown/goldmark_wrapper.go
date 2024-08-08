@@ -149,6 +149,11 @@ func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading He
 func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading Heading, text string) []byte {
 	_, targetHeadingNode := gmw.GetHeadingNode(sourceSelf, targetHeading)
 
+	// for compaitibility
+	if targetHeadingNode == nil {
+		return sourceSelf
+	}
+
 	s := targetHeadingNode.Lines().At(0)
 
 	buf := []byte{}

@@ -10,6 +10,7 @@ import (
 var (
 	// daily memo
 	HEADING_NAME_TITLE     = markdown.Heading{Level: 1, Text: "daily memo"}
+	HEADING_NAME_TODAYSTIP = markdown.Heading{Level: 2, Text: "today's tip"}
 	HEADING_NAME_TODOS     = markdown.Heading{Level: 2, Text: "todos"}
 	HEADING_NAME_WANTTODOS = markdown.Heading{Level: 2, Text: "wanttodos"}
 	HEADING_NAME_MEMOS     = markdown.Heading{Level: 2, Text: "memos"}
@@ -25,6 +26,7 @@ var (
 	TemplateDailymemo = models.Template{
 		Headings: []markdown.Heading{
 			HEADING_NAME_TITLE,
+			HEADING_NAME_TODAYSTIP,
 			HEADING_NAME_TODOS,
 			HEADING_NAME_WANTTODOS,
 			HEADING_NAME_MEMOS,
