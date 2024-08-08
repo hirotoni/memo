@@ -711,3 +711,54 @@ func TestMarkdownRenderer_renderThematicBreak(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkdownRenderer_renderCodeSpan(t *testing.T) {
+	type args struct {
+		node     ast.Node
+		entering bool
+	}
+	type wants struct {
+		status ast.WalkStatus
+		str    string
+		err    bool
+	}
+
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{
+		{
+			name:  "entering true",
+			args:  args{node: genCodeSpan(), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "`", err: false},
+		},
+		{
+			name:  "entering false",
+			args:  args{node: genCodeSpan(), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "`", err: false},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
+			r := NewMarkdownRenderer()
+			sb := new(strings.Builder)
+			w := bufio.NewWriter(sb)
+			source := []byte("dummy source")
+
+			got, err := r.renderCodeSpan(w, source, tt.args.node, tt.args.entering)
+			if (err != nil) != tt.wants.err {
+				t.Errorf("MarkdownRenderer.renderCodeSpan() error = %v, wantErr %v", err, tt.wants.err)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.wants.status) {
+				t.Errorf("MarkdownRenderer.renderCodeSpan() = %v, want %v", got, tt.wants.status)
+			}
+
+			assert.NoError(w.Flush())
+			assert.Equal(tt.wants.str, sb.String())
+		})
+	}
+}

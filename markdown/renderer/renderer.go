@@ -36,7 +36,7 @@ func (r *MarkdownRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer
 
 	// // inlines
 	reg.Register(ast.KindAutoLink, r.renderAutoLink)
-	// reg.Register(ast.KindCodeSpan, r.renderCodeSpan)
+	reg.Register(ast.KindCodeSpan, r.renderCodeSpan)
 	reg.Register(ast.KindEmphasis, r.renderEmphasis)
 	// reg.Register(ast.KindImage, r.renderImage)
 	reg.Register(ast.KindLink, r.renderLink)
@@ -220,6 +220,16 @@ func (r *MarkdownRenderer) renderAutoLink(
 	n := node.(*ast.AutoLink)
 	if entering {
 		w.WriteString(fmt.Sprint(string(n.URL(source))))
+	}
+	return ast.WalkContinue, nil
+}
+
+func (r *MarkdownRenderer) renderCodeSpan(
+	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	if entering {
+		w.WriteString("`")
+	} else {
+		w.WriteString("`")
 	}
 	return ast.WalkContinue, nil
 }
