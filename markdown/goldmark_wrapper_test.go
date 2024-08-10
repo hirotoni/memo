@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var updateGolden = false
+
 func TestGoldmarkWrapper_Render(t *testing.T) {
 	assert := assert.New(t)
 	tests := []struct {
@@ -21,17 +23,25 @@ func TestGoldmarkWrapper_Render(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f, err := os.ReadFile("./testdata/sample.md")
+			filename := "./testdata/sample.md"
+			golden := "./testdata/sample.md.golden"
+
+			f, err := os.ReadFile(filename)
 			assert.NoError(err)
 
 			gmw := NewGoldmarkWrapper()
 			doc := gmw.Parse(f)
-			doc.Dump(f, 1)
+			// doc.Dump(f, 1)
 
 			writer := &bytes.Buffer{}
 			gmw.Render(writer, f, doc)
 
 			fmt.Println(writer.String())
+			assert.Equal(string(f), writer.String())
+
+			if updateGolden {
+				os.WriteFile(golden, writer.Bytes(), 0644)
+			}
 		})
 	}
 }
