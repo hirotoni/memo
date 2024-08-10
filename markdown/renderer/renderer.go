@@ -58,10 +58,14 @@ func (r *MarkdownRenderer) renderHeading(
 	w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.Heading)
 	if entering {
-		if n.HasBlankPreviousLines() {
+		if n.PreviousSibling() != nil && n.HasBlankPreviousLines() {
 			_, _ = w.WriteString("\n\n")
 		}
 		_, _ = w.WriteString(strings.Repeat("#", n.Level) + " ")
+	} else {
+		if n.NextSibling() == nil {
+			_, _ = w.WriteString("\n")
+		}
 	}
 	return ast.WalkContinue, nil
 }

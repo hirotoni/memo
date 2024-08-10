@@ -13,9 +13,15 @@ func safeGroundParent(n ast.Node) ast.Node {
 	return n.Parent().Parent()
 }
 
-func genHeaderNode(level int, setBlankSpacePreviousLines bool) ast.Node {
+func genHeaderNode(level int, setBlankSpacePreviousLines bool, isFirstNode, isLastNode bool) ast.Node {
 	h := ast.NewHeading(level)
 	h.SetBlankPreviousLines(setBlankSpacePreviousLines)
+	if !isFirstNode {
+		h.SetPreviousSibling(ast.NewHeading(level))
+	}
+	if !isLastNode {
+		h.SetNextSibling(ast.NewHeading(level))
+	}
 	return h
 }
 

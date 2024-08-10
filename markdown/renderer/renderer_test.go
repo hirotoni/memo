@@ -28,28 +28,38 @@ func TestMarkdownRenderer_renderHeading(t *testing.T) {
 	}{
 		{
 			name:  "entering, level 1",
-			args:  args{node: genHeaderNode(1, false), entering: true},
+			args:  args{node: genHeaderNode(1, false, false, false), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "# ", err: false},
 		},
 		{
 			name:  "exiting, level 1",
-			args:  args{node: genHeaderNode(1, false), entering: false},
+			args:  args{node: genHeaderNode(1, false, false, false), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "", err: false},
 		},
 		{
 			name:  "entering, level 6",
-			args:  args{node: genHeaderNode(6, false), entering: true},
+			args:  args{node: genHeaderNode(6, false, false, false), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "###### ", err: false},
 		},
 		{
 			name:  "entering, blank previous lines",
-			args:  args{node: genHeaderNode(1, true), entering: true},
+			args:  args{node: genHeaderNode(1, true, false, false), entering: true},
 			wants: wants{status: ast.WalkContinue, str: "\n\n# ", err: false},
 		},
 		{
+			name:  "entering, blank previous lines, first node",
+			args:  args{node: genHeaderNode(1, true, true, false), entering: true},
+			wants: wants{status: ast.WalkContinue, str: "# ", err: false},
+		},
+		{
 			name:  "exiting, blank previous lines",
-			args:  args{node: genHeaderNode(1, true), entering: false},
+			args:  args{node: genHeaderNode(1, true, false, false), entering: false},
 			wants: wants{status: ast.WalkContinue, str: "", err: false},
+		},
+		{
+			name:  "exiting, blank previous lines, last node",
+			args:  args{node: genHeaderNode(1, true, false, true), entering: false},
+			wants: wants{status: ast.WalkContinue, str: "\n", err: false},
 		},
 	}
 	for _, tt := range tests {
