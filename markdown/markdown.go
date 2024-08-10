@@ -5,11 +5,6 @@ import (
 	"strings"
 )
 
-type Heading struct {
-	Level int
-	Text  string
-}
-
 func Text2tag(text string) string {
 	var tag = text
 	tag = strings.ReplaceAll(tag, " ", "-")

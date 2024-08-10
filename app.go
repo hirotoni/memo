@@ -122,7 +122,7 @@ func (app *App) generateTodaysMemo(today string) []byte {
 }
 
 // inheritHeading inherits todos from previous day's memo
-func (app *App) inheritHeading(tb []byte, heading markdown.Heading) []byte {
+func (app *App) inheritHeading(tb []byte, heading models.Heading) []byte {
 	// previous days
 	today := time.Now()
 	for i := range make([]int, DAYS_TO_SEEK) {

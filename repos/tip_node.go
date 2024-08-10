@@ -114,7 +114,7 @@ func (repo *TipNodeRepo) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
 		return nil, nil
 	}
 	heading := headings[0]
-	heading1, nodes := repo.gmw.FindHeadingAndGetHangingNodes(b, markdown.Heading{Level: 1, Text: string(heading.Text(b))})
+	heading1, nodes := repo.gmw.FindHeadingAndGetHangingNodes(b, models.Heading{Level: 1, Text: string(heading.Text(b))})
 
 	heading2s := filter(nodes, func(n ast.Node) bool {
 		h, ok := n.(*ast.Heading)
