@@ -39,9 +39,9 @@ var (
 	}
 	TemplateTips = models.Template{
 		Headings: []models.Heading{
-			{Level: 1, Text: "sushi (<- CATEGORY NAME HERE)"},
-			{Level: 2, Text: "how to eat sushi (<- YOUR TIPS HERE)"},
-			{Level: 2, Text: "how to roll sushi (<- ANOTHER RELATED TIPS HERE)"},
+			{Level: 1, Text: "sushi (<- tip category)"},
+			{Level: 2, Text: "how to eat sushi (<- tip title in heading level 2)"},
+			{Level: 2, Text: "how to roll sushi (<- another tip)"},
 		},
 	}
 	TemplateTipsIndex = models.Template{
