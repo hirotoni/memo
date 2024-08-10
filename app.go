@@ -313,6 +313,15 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 	return picked
 }
 
+func (app *App) ShowEnv() {
+	v, found := os.LookupEnv(config.ENV_NAME_DEFAULT_BASE_DIR)
+	if !found {
+		v = ""
+	}
+
+	fmt.Printf("%s:\t%s\n", config.ENV_NAME_DEFAULT_BASE_DIR, v)
+}
+
 func filter[T any](ts []T, test func(T) bool) (ret []T) {
 	for _, s := range ts {
 		if test(s) {
