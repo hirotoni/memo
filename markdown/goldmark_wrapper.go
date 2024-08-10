@@ -130,6 +130,12 @@ func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading mo
 
 	doc, targetNode := gmw.GetHeadingNode(sourceSelf, targetHeading)
 
+	// for compaitibility
+	if targetNode == nil {
+		// TODO return info that target heading is not found
+		return sourceSelf
+	}
+
 	for _, n := range nodesToInsert {
 		doc.InsertAfter(doc, targetNode, n)
 		s := targetNode.Lines().At(0) // TODO error handling
@@ -152,6 +158,7 @@ func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading mod
 
 	// for compaitibility
 	if targetHeadingNode == nil {
+		// TODO return info that target heading is not found
 		return sourceSelf
 	}
 
