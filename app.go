@@ -297,7 +297,7 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 
 	var buf = &bytes.Buffer{}
 	for _, v := range allTips {
-		v.Print(buf)
+		usecases.PrintTipNode(buf, v)
 	}
 
 	// write tips to index
