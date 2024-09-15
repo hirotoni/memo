@@ -182,6 +182,27 @@ func (app *App) WeeklyReport(openEditor bool) {
 		}
 	}
 
+	wr := app.buildWeeklyReport(wantfiles)
+
+	f, err := os.Create(app.config.WeeklyReportFile())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	f.WriteString(usecases.GenerateTemplateString(usecases.TemplateWeeklyReport) + "\n")
+	f.WriteString(wr)
+
+	if openEditor {
+		// open memo dir with editor
+		cmd := exec.Command("code", app.config.WeeklyReportFile(), "--folder-uri", app.config.BaseDir())
+		if err := cmd.Run(); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func (app *App) buildWeeklyReport(wantfiles []string) string {
 	sb := strings.Builder{}
 	var curWeekNum int
 	for _, fpath := range wantfiles {
@@ -231,23 +252,7 @@ func (app *App) WeeklyReport(openEditor bool) {
 			sb.WriteString("\n")
 		}
 	}
-
-	f, err := os.Create(app.config.WeeklyReportFile())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	f.WriteString(usecases.GenerateTemplateString(usecases.TemplateWeeklyReport) + "\n")
-	f.WriteString(sb.String())
-
-	if openEditor {
-		// open memo dir with editor
-		cmd := exec.Command("code", app.config.WeeklyReportFile(), "--folder-uri", app.config.BaseDir())
-		if err := cmd.Run(); err != nil {
-			log.Fatal(err)
-		}
-	}
+	return sb.String()
 }
 
 // SaveTips generates tips index file
