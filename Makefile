@@ -21,3 +21,9 @@ tips: ## Generate tips index
 .PHONY: test
 test: ## Run tests
 	go test ./... -cover
+
+.PHONY: cyclo
+cyclo: ## Run gocyclo
+	@command -v gocyclo >/dev/null 2>&1 || { echo >&2 "gocyclo is required but it's not installed.  Aborting."; exit 1; }
+	@echo "Running gocyclo"
+	gocyclo -top 5 .
