@@ -79,10 +79,9 @@ func initializeDir(dirpath string) {
 	}
 }
 
-// OpenTodaysMemo opens today's memo
-func (app *App) OpenTodaysMemo(truncate bool) {
-	today := time.Now().Format(LAYOUT)
-	filename := fmt.Sprintf(FILENAME_FORMAT, today)
+// GenerateMemo generates memo file
+func (app *App) GenerateMemo(date string, truncate bool) string {
+	filename := fmt.Sprintf(FILENAME_FORMAT, date)
 	targetFile := filepath.Join(app.config.DailymemoDir(), filename)
 
 	log.Default().Printf("truncate: %v", truncate)
@@ -95,17 +94,14 @@ func (app *App) OpenTodaysMemo(truncate bool) {
 		}
 		defer f.Close()
 
-		f.Write(app.generateTodaysMemo(today))
+		f.Write(app.generateMemo(date))
 	}
 
-	// open memo dir with editor
-	cmd := exec.Command("code", targetFile, "--folder-uri", app.config.BaseDir())
-	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
-	}
+	return targetFile
 }
 
-func (app *App) generateTodaysMemo(today string) []byte {
+// generateMemo generates memo file
+func (app *App) generateMemo(date string) []byte {
 	b, err := os.ReadFile(app.config.DailymemoTemplateFile())
 	if err != nil {
 		log.Fatal(err)
@@ -116,7 +112,7 @@ func (app *App) generateTodaysMemo(today string) []byte {
 	b = app.inheritHeading(b, usecases.HEADING_NAME_WANTTODOS)
 	b = app.appendTips(b)
 
-	b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, today)
+	b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, date)
 
 	return b
 }
@@ -168,7 +164,7 @@ func (app *App) appendTips(tb []byte) []byte {
 }
 
 // WeeklyReport generates weekly report file
-func (app *App) WeeklyReport(openEditor bool) {
+func (app *App) WeeklyReport() {
 	entries, err := os.ReadDir(app.config.DailymemoDir())
 	if err != nil {
 		log.Fatal(err)
@@ -192,16 +188,17 @@ func (app *App) WeeklyReport(openEditor bool) {
 
 	f.WriteString(usecases.GenerateTemplateString(usecases.TemplateWeeklyReport) + "\n")
 	f.WriteString(wr)
+}
 
-	if openEditor {
-		// open memo dir with editor
-		cmd := exec.Command("code", app.config.WeeklyReportFile(), "--folder-uri", app.config.BaseDir())
-		if err := cmd.Run(); err != nil {
-			log.Fatal(err)
-		}
+// OpenEditor opens editor
+func (app *App) OpenEditor(path string) {
+	cmd := exec.Command("code", path, "--folder-uri", app.config.BaseDir())
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
 	}
 }
 
+// buildWeeklyReport builds weekly report
 func (app *App) buildWeeklyReport(wantfiles []string) string {
 	sb := strings.Builder{}
 	var curWeekNum int
@@ -256,16 +253,8 @@ func (app *App) buildWeeklyReport(wantfiles []string) string {
 }
 
 // SaveTips generates tips index file
-func (app *App) SaveTips(openEditor bool) {
+func (app *App) SaveTips() {
 	app.saveTips(false)
-
-	if openEditor {
-		// open memo dir with editor
-		cmd := exec.Command("code", app.config.TipsIndexFile(), "--folder-uri", app.config.BaseDir())
-		if err := cmd.Run(); err != nil {
-			log.Fatal(err)
-		}
-	}
 }
 
 func (app *App) saveTips(pickTip bool) *models.Tip {

@@ -79,12 +79,16 @@ func main() {
 	switch flag.Args()[0] {
 	case _create.Name():
 		_create.Parse(flag.Args()[1:])
-		app.OpenTodaysMemo(*_createTruncate)
-		app.WeeklyReport(false)
+		today := time.Now().Format(LAYOUT)
+		targetFile := app.GenerateMemo(today, *_createTruncate)
+		app.WeeklyReport()
+		app.OpenEditor(targetFile)
 	case _weekly.Name():
-		app.WeeklyReport(true)
+		app.WeeklyReport()
+		app.OpenEditor(app.config.WeeklyReportFile())
 	case _tips.Name():
-		app.SaveTips(true)
+		app.SaveTips()
+		app.OpenEditor(app.config.TipsIndexFile())
 	case _env.Name():
 		app.ShowEnv()
 	default:
