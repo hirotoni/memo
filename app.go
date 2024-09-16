@@ -79,6 +79,14 @@ func initializeDir(dirpath string) {
 	}
 }
 
+// OpenEditor opens editor
+func (app *App) OpenEditor(path string) {
+	cmd := exec.Command("code", path, "--folder-uri", app.config.BaseDir())
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
 // GenerateMemo generates memo file
 func (app *App) GenerateMemo(date string, truncate bool) string {
 	filename := fmt.Sprintf(FILENAME_FORMAT, date)
@@ -186,14 +194,6 @@ func (app *App) WeeklyReport() {
 
 	f.WriteString(usecases.GenerateTemplateString(usecases.TemplateWeeklyReport) + "\n")
 	f.WriteString(wr)
-}
-
-// OpenEditor opens editor
-func (app *App) OpenEditor(path string) {
-	cmd := exec.Command("code", path, "--folder-uri", app.config.BaseDir())
-	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
-	}
 }
 
 // buildWeeklyReport builds weekly report
