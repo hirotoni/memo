@@ -23,7 +23,8 @@ import (
 
 const (
 	TIMEZONE        = "Asia/Tokyo"
-	LAYOUT          = "2006-01-02-Mon"
+	FULL_LAYOUT     = "2006-01-02-Mon"
+	SHORT_LAYOUT    = "2006-01-02"
 	FILENAME_REGEX  = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
 	FILENAME_FORMAT = "%s.md"
 
@@ -128,7 +129,7 @@ func (app *App) inheritHeading(tb []byte, heading models.Heading) []byte {
 	// previous days
 	today := time.Now()
 	for i := range make([]int, DAYS_TO_SEEK) {
-		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(LAYOUT)
+		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(FULL_LAYOUT)
 		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
 		if errors.Is(err, os.ErrNotExist) {
 			if i+1 == DAYS_TO_SEEK {
@@ -207,7 +208,7 @@ func (app *App) buildWeeklyReport(wantfiles []string) string {
 			log.Fatal("failed to cut suffix.")
 		}
 
-		date, err := time.Parse(LAYOUT, datestring)
+		date, err := time.Parse(FULL_LAYOUT, datestring)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -27,9 +27,15 @@ func main() {
 		Usage:                "A CLI tool for managing daily memo",
 		Commands: []*cli.Command{
 			{
-				Name:  "create",
+				Name:  "new",
 				Usage: "create memo",
 				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "date",
+						Aliases:     []string{"d"},
+						Usage:       "specify the date to create memo: `YYYY-MM-DD`",
+						DefaultText: "today",
+					},
 					&cli.BoolFlag{
 						Name:    "truncate",
 						Aliases: []string{"t"},
@@ -37,8 +43,20 @@ func main() {
 					},
 				},
 				Action: func(c *cli.Context) error {
-					today := time.Now().Format(LAYOUT)
-					targetFile := app.GenerateMemo(today, c.Bool("truncate"))
+					var date string
+
+					arg := c.String("date")
+					if arg != "" {
+						d, err := time.Parse(SHORT_LAYOUT, arg)
+						if err != nil {
+							log.Fatalf("Invalid date format: %s", arg)
+						}
+						date = d.Format(FULL_LAYOUT)
+					} else {
+						date = time.Now().Format(FULL_LAYOUT) // default to today
+					}
+
+					targetFile := app.GenerateMemo(date, c.Bool("truncate"))
 					app.WeeklyReport()
 					app.OpenEditor(targetFile)
 					return nil
