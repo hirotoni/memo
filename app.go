@@ -107,17 +107,15 @@ func (app *App) generateMemo(date string) []byte {
 		log.Fatal(err)
 	}
 
-	// inherit todos and wanttodos from previous memo
+	b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, date)
 	b = app.inheritHeading(b, usecases.HEADING_NAME_TODOS)
 	b = app.inheritHeading(b, usecases.HEADING_NAME_WANTTODOS)
 	b = app.appendTips(b)
 
-	b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, date)
-
 	return b
 }
 
-// inheritHeading inherits todos from previous day's memo
+// inheritHeading inherits information of the specified heading from previous day's memo
 func (app *App) inheritHeading(tb []byte, heading models.Heading) []byte {
 	// previous days
 	today := time.Now()
