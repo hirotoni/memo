@@ -27,20 +27,17 @@ const (
 	SHORT_LAYOUT    = "2006-01-02"
 	FILENAME_REGEX  = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
 	FILENAME_FORMAT = "%s.md"
-
-	// number of dates to seek back when inheriting todos from previous days
-	DAYS_TO_SEEK = 10
 )
 
 type App struct {
 	gmw    *markdown.GoldmarkWrapper
-	config *config.AppConfig
+	config *config.TomlConfig
 }
 
 func NewApp() App {
 	return App{
 		gmw:    markdown.NewGoldmarkWrapper(),
-		config: config.NewAppConfig(),
+		config: config.LoadTomlConfig(),
 	}
 }
 
@@ -82,7 +79,7 @@ func initializeDir(dirpath string) {
 
 // OpenEditor opens editor
 func (app *App) OpenEditor(path string) {
-	cmd := exec.Command("code", path, "--folder-uri", app.config.BaseDir())
+	cmd := exec.Command("code", path, "--folder-uri", app.config.BaseDir)
 	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -128,12 +125,12 @@ func (app *App) generateMemo(date string) []byte {
 func (app *App) inheritHeading(tb []byte, heading models.Heading) []byte {
 	// previous days
 	today := time.Now()
-	for i := range make([]int, DAYS_TO_SEEK) {
+	for i := range make([]int, app.config.DaysToSeek) {
 		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(FULL_LAYOUT)
 		pb, err := os.ReadFile(filepath.Join(app.config.DailymemoDir(), previousDay+".md"))
 		if errors.Is(err, os.ErrNotExist) {
-			if i+1 == DAYS_TO_SEEK {
-				log.Printf("previous memos were not found in previous %d days.", DAYS_TO_SEEK)
+			if i+1 == app.config.DaysToSeek {
+				log.Printf("previous memos were not found in previous %d days.", app.config.DaysToSeek)
 			}
 			continue
 		} else if err != nil {
@@ -306,13 +303,24 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 	return picked
 }
 
-func (app *App) ShowEnv() {
-	v, found := os.LookupEnv(config.ENV_NAME_DEFAULT_BASE_DIR)
-	if !found {
-		v = ""
+func (app *App) EditConfig() {
+	configFile, err := config.ConfigFilePath()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	fmt.Printf("%s:\t%s\n", config.ENV_NAME_DEFAULT_BASE_DIR, v)
+	cmd := exec.Command("vim", configFile)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (app *App) ShowConfig() {
+	tomlConfig := config.LoadTomlConfig()
+	fmt.Printf("%+v", tomlConfig)
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {

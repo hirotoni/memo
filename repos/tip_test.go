@@ -10,12 +10,14 @@ import (
 )
 
 func TestTipRepo_TipsFromIndex(t *testing.T) {
-	t.Setenv(config.ENV_NAME_DEFAULT_BASE_DIR, "testdata")
-
 	type fields struct {
-		config *config.AppConfig
+		config *config.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
 	}
+
+	testConfig := config.LoadTomlConfig()
+	testConfig.BaseDir = "testdata"
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -24,7 +26,7 @@ func TestTipRepo_TipsFromIndex(t *testing.T) {
 		{
 			name: "Test TipsFromIndex",
 			fields: fields{
-				config: config.NewAppConfig(),
+				config: testConfig,
 				gmw:    markdown.NewGoldmarkWrapper(),
 			},
 			want: []*models.Tip{
@@ -48,12 +50,14 @@ func TestTipRepo_TipsFromIndex(t *testing.T) {
 }
 
 func TestTipRepo_TipsFromIndexChecked(t *testing.T) {
-	t.Setenv(config.ENV_NAME_DEFAULT_BASE_DIR, "testdata")
-
 	type fields struct {
-		config *config.AppConfig
+		config *config.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
 	}
+
+	testConfig := config.LoadTomlConfig()
+	testConfig.BaseDir = "testdata"
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -62,7 +66,7 @@ func TestTipRepo_TipsFromIndexChecked(t *testing.T) {
 		{
 			name: "Test TipsFromIndexChecked",
 			fields: fields{
-				config: config.NewAppConfig(),
+				config: testConfig,
 				gmw:    markdown.NewGoldmarkWrapper(),
 			},
 			want: []*models.Tip{

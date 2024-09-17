@@ -15,11 +15,11 @@ import (
 )
 
 type TipNodeRepo struct {
-	config *config.AppConfig
+	config *config.TomlConfig
 	gmw    *markdown.GoldmarkWrapper
 }
 
-func NewTipNodeRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) *TipNodeRepo {
+func NewTipNodeRepo(config *config.TomlConfig, gmw *markdown.GoldmarkWrapper) *TipNodeRepo {
 	return &TipNodeRepo{
 		config: config,
 		gmw:    gmw,

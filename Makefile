@@ -18,6 +18,14 @@ weekly: ## Create weekly report
 tips: ## Generate tips index
 	go run . tips
 
+.PHONY: config
+config: ## Edit config file
+	go run . config
+
+.PHONY: config show
+config-show: ## Show config file
+	go run . config show
+
 .PHONY: test
 test: ## Run tests
 	go test ./... -cover

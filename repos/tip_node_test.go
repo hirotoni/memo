@@ -10,15 +10,17 @@ import (
 )
 
 func TestTipNodeRepo_TipNodesFromTipsDir(t *testing.T) {
-	t.Setenv(config.ENV_NAME_DEFAULT_BASE_DIR, "testdata")
-
 	type fields struct {
-		config *config.AppConfig
+		config *config.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
 	}
 	type args struct {
 		shown []*models.Tip
 	}
+
+	testConfig := config.LoadTomlConfig()
+	testConfig.BaseDir = "testdata"
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -28,7 +30,7 @@ func TestTipNodeRepo_TipNodesFromTipsDir(t *testing.T) {
 		{
 			name: "Test TipNodesFromTipsDir",
 			fields: fields{
-				config: config.NewAppConfig(),
+				config: testConfig,
 				gmw:    markdown.NewGoldmarkWrapper(),
 			},
 			args: args{
@@ -59,7 +61,7 @@ func TestTipNodeRepo_TipNodesFromTipsDir(t *testing.T) {
 		{
 			name: "Test TipNodesFromTipsDir checked",
 			fields: fields{
-				config: config.NewAppConfig(),
+				config: testConfig,
 				gmw:    markdown.NewGoldmarkWrapper(),
 			},
 			args: args{

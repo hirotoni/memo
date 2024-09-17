@@ -12,11 +12,11 @@ import (
 )
 
 type TipRepo struct {
-	config *config.AppConfig
+	config *config.TomlConfig
 	gmw    *markdown.GoldmarkWrapper
 }
 
-func NewTipRepo(config *config.AppConfig, gmw *markdown.GoldmarkWrapper) *TipRepo {
+func NewTipRepo(config *config.TomlConfig, gmw *markdown.GoldmarkWrapper) *TipRepo {
 	return &TipRepo{
 		config: config,
 		gmw:    gmw,

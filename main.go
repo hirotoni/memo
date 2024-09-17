@@ -81,11 +81,21 @@ func main() {
 				},
 			},
 			{
-				Name:  "env",
-				Usage: "print environment information",
+				Name:  "config",
+				Usage: "edit configuration information",
 				Action: func(c *cli.Context) error {
-					app.ShowEnv()
+					app.EditConfig()
 					return nil
+				},
+				Subcommands: []*cli.Command{
+					{
+						Name:  "show",
+						Usage: "show configuration information",
+						Action: func(c *cli.Context) error {
+							app.ShowConfig()
+							return nil
+						},
+					},
 				},
 			},
 		},
