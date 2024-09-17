@@ -156,7 +156,7 @@ func (app *App) appendTips(tb []byte) []byte {
 	picked := app.saveTips(true)
 
 	// insert todays tip
-	if picked.Destination != "" {
+	if picked != nil && picked.Destination != "" {
 		chosenTip := markdown.BuildList(markdown.BuildLink(
 			picked.Text,
 			picked.Destination,
