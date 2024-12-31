@@ -21,7 +21,6 @@ var (
 )
 
 var (
-	// daily memo
 	dailymemoHeadings = []models.Heading{
 		HEADING_NAME_TITLE,
 		HEADING_NAME_TODAYSTIP,

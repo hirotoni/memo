@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	"github.com/hirotoni/memo/markdown"
 )
 
 const (
@@ -24,6 +25,7 @@ const (
 type TomlConfig struct {
 	BaseDir    string `toml:"basedir"`    // memoapp base directory
 	DaysToSeek int    `toml:"daystoseek"` // days to seek back
+	Gmw        *markdown.GoldmarkWrapper
 }
 
 func LoadTomlConfig() *TomlConfig {
@@ -69,6 +71,8 @@ func LoadTomlConfig() *TomlConfig {
 		log.Fatal(err)
 		return nil
 	}
+
+	tomlConfig.Gmw = markdown.NewGoldmarkWrapper()
 
 	return tomlConfig
 }

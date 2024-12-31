@@ -26,7 +26,7 @@ func NewDailymemoRepo(config *config.TomlConfig, gmw *markdown.GoldmarkWrapper) 
 var FILENAME_REGEX = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
 
 func (repo *DailymemoRepo) Entires() []models.Dailymemo {
-	entries, err := os.ReadDir(repo.config.DailymemoDir())
+	entries, err := os.ReadDir(repo.config.DailymemoDir()) // sorted by filename(=date)
 	if err != nil {
 		log.Fatal(err)
 	}

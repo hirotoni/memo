@@ -31,6 +31,7 @@ const (
 type App struct {
 	gmw           *markdown.GoldmarkWrapper
 	config        *config.TomlConfig
+	repos         *repos.Repos
 	dailymemoRepo *repos.DailymemoRepo
 	tipRepo       *repos.TipRepo
 	tipNodeRepo   *repos.TipNodeRepo
@@ -43,6 +44,7 @@ func NewApp() App {
 	return App{
 		gmw:           gmw,
 		config:        config,
+		repos:         repos.NewRepos(config, gmw),
 		dailymemoRepo: repos.NewDailymemoRepo(config, gmw),
 		tipRepo:       repos.NewTipRepo(config, gmw),
 		tipNodeRepo:   repos.NewTipNodeRepo(config, gmw),
@@ -177,8 +179,7 @@ func (app *App) appendTips(tb []byte) []byte {
 
 // WeeklyReport generates weekly report file
 func (app *App) WeeklyReport() {
-	dms := app.dailymemoRepo.Entires()
-	wr := app.buildWeeklyReport(dms)
+	wr := app.buildWeeklyReport()
 
 	f, err := os.Create(app.config.WeeklyReportFile())
 	if err != nil {
@@ -196,10 +197,11 @@ func weekSpliter(date time.Time) string {
 }
 
 // buildWeeklyReport builds weekly report
-func (app *App) buildWeeklyReport(dms []models.Dailymemo) string {
-	sb := strings.Builder{}
+func (app *App) buildWeeklyReport() string {
+	var sb strings.Builder
 	var curWeekNum int
 
+	dms := app.dailymemoRepo.Entires()
 	for _, dm := range dms {
 		if curWeekNum != dm.WeekNum() {
 			sb.WriteString(weekSpliter(dm.Date))
