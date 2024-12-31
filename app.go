@@ -174,7 +174,7 @@ func (app *App) WeeklyReport() {
 		log.Fatal(err)
 	}
 
-	wantfiles := []string{}
+	wantfiles := make([]string, 0, len(entries))
 	reg := regexp.MustCompile(FILENAME_REGEX)
 	for _, file := range entries {
 		if reg.MatchString(file.Name()) {
@@ -194,48 +194,78 @@ func (app *App) WeeklyReport() {
 	f.WriteString(wr)
 }
 
+type Dailymemo struct {
+	Filepath string
+	BaseName string
+	Date     time.Time
+	Content  []byte
+}
+
+func (dm Dailymemo) YearNum() int {
+	year, _ := dm.Date.ISOWeek()
+	return year
+}
+func (dm Dailymemo) WeekNum() int {
+	_, week := dm.Date.ISOWeek()
+	return week
+}
+
+func NewDailymemoFromFilepath(fpath string) Dailymemo {
+	basename := filepath.Base(fpath)
+	datestring, found := strings.CutSuffix(basename, ".md")
+	if !found {
+		log.Fatal("failed to cut suffix.")
+	}
+	date, err := time.Parse(FULL_LAYOUT, datestring)
+	if err != nil {
+		log.Fatal(err)
+	}
+	b, err := os.ReadFile(fpath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return Dailymemo{
+		Filepath: fpath,
+		BaseName: basename,
+		Date:     date,
+		Content:  b,
+	}
+}
+
+func weekSpliter(date time.Time, curWeekNum int) string {
+	year, week := date.ISOWeek()
+	return "## " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n"
+}
+
 // buildWeeklyReport builds weekly report
 func (app *App) buildWeeklyReport(wantfiles []string) string {
 	sb := strings.Builder{}
 	var curWeekNum int
 	for _, fpath := range wantfiles {
+		dm := NewDailymemoFromFilepath(fpath)
 
-		datestring, found := strings.CutSuffix(filepath.Base(fpath), ".md")
-		if !found {
-			log.Fatal("failed to cut suffix.")
+		if curWeekNum != dm.WeekNum() {
+			sb.WriteString(weekSpliter(dm.Date, curWeekNum))
+			curWeekNum = dm.WeekNum()
 		}
 
-		date, err := time.Parse(FULL_LAYOUT, datestring)
-		if err != nil {
-			log.Fatal(err)
-		}
+		sb.WriteString(markdown.BuildHeading(3, dm.BaseName+"\n\n"))
 
-		year, week := date.ISOWeek()
-		if curWeekNum != week {
-			sb.WriteString("## " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n")
-			curWeekNum = week
-		}
-
-		sb.WriteString("### " + filepath.Base(fpath) + "\n\n")
-
-		b, err := os.ReadFile(fpath)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(b, usecases.HEADING_NAME_MEMOS)
+		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(dm.Content, usecases.HEADING_NAME_MEMOS)
 
 		var order = 0
 		for _, node := range hangingNodes {
 			if n, ok := node.(*ast.Heading); ok {
-				relpath, err := filepath.Rel(app.config.DailymemoDir(), fpath)
+				relpath, err := filepath.Rel(app.config.DailymemoDir(), dm.Filepath)
 				if err != nil {
 					log.Fatal(err)
 				}
 
 				order++
-				title := strings.Repeat("#", n.Level-2) + " " + string(node.Text(b))
-				tag := markdown.Text2tag(string(node.Text(b)))
+
+				title := markdown.BuildHeading(n.Level-2, string(node.Text(dm.Content)))
+				tag := markdown.Text2tag(string(node.Text(dm.Content)))
 				s := markdown.BuildOrderedList(order, markdown.BuildLink(title, relpath+"#"+tag)) + "\n"
 				sb.WriteString(s)
 			}
