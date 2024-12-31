@@ -5,12 +5,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/hirotoni/memo/application"
 	"github.com/urfave/cli/v2"
 )
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	tz, err := time.LoadLocation(TIMEZONE)
+	tz, err := time.LoadLocation(application.TIMEZONE)
 	if err != nil {
 		panic(err)
 	}
@@ -18,7 +19,7 @@ func init() {
 }
 
 func main() {
-	app := NewApp()
+	app := application.NewApp()
 	app.Initialize()
 
 	cliapp := &cli.App{
@@ -47,13 +48,13 @@ func main() {
 
 					arg := c.String("date")
 					if arg != "" {
-						d, err := time.Parse(SHORT_LAYOUT, arg)
+						d, err := time.Parse(application.SHORT_LAYOUT, arg)
 						if err != nil {
 							log.Fatalf("Invalid date format: %s", arg)
 						}
-						date = d.Format(FULL_LAYOUT)
+						date = d.Format(application.FULL_LAYOUT)
 					} else {
-						date = time.Now().Format(FULL_LAYOUT) // default to today
+						date = time.Now().Format(application.FULL_LAYOUT) // default to today
 					}
 
 					targetFile := app.GenerateMemo(date, c.Bool("truncate"))
@@ -67,7 +68,7 @@ func main() {
 				Usage: "generate weekly report",
 				Action: func(c *cli.Context) error {
 					app.WeeklyReport()
-					app.OpenEditor(app.config.WeeklyReportFile())
+					app.OpenEditor(app.Config.WeeklyReportFile())
 					return nil
 				},
 			},
@@ -76,7 +77,7 @@ func main() {
 				Usage: "generate tips index",
 				Action: func(c *cli.Context) error {
 					app.SaveTips()
-					app.OpenEditor(app.config.TipsIndexFile())
+					app.OpenEditor(app.Config.TipsIndexFile())
 					return nil
 				},
 			},
