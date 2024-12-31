@@ -4,6 +4,10 @@ type Template struct {
 	Headings []Heading
 }
 
+func NewTemplate(headings []Heading) Template {
+	return Template{Headings: headings}
+}
+
 type Heading struct {
 	Level int
 	Text  string
