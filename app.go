@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -30,14 +29,23 @@ const (
 )
 
 type App struct {
-	gmw    *markdown.GoldmarkWrapper
-	config *config.TomlConfig
+	gmw           *markdown.GoldmarkWrapper
+	config        *config.TomlConfig
+	dailymemoRepo *repos.DailymemoRepo
+	tipRepo       *repos.TipRepo
+	tipNodeRepo   *repos.TipNodeRepo
 }
 
 func NewApp() App {
+	gmw := markdown.NewGoldmarkWrapper()
+	config := config.LoadTomlConfig()
+
 	return App{
-		gmw:    markdown.NewGoldmarkWrapper(),
-		config: config.LoadTomlConfig(),
+		gmw:           gmw,
+		config:        config,
+		dailymemoRepo: repos.NewDailymemoRepo(config, gmw),
+		tipRepo:       repos.NewTipRepo(config, gmw),
+		tipNodeRepo:   repos.NewTipNodeRepo(config, gmw),
 	}
 }
 
@@ -169,20 +177,8 @@ func (app *App) appendTips(tb []byte) []byte {
 
 // WeeklyReport generates weekly report file
 func (app *App) WeeklyReport() {
-	entries, err := os.ReadDir(app.config.DailymemoDir())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	wantfiles := make([]string, 0, len(entries))
-	reg := regexp.MustCompile(FILENAME_REGEX)
-	for _, file := range entries {
-		if reg.MatchString(file.Name()) {
-			wantfiles = append(wantfiles, filepath.Join(app.config.DailymemoDir(), file.Name()))
-		}
-	}
-
-	wr := app.buildWeeklyReport(wantfiles)
+	dms := app.dailymemoRepo.Entires()
+	wr := app.buildWeeklyReport(dms)
 
 	f, err := os.Create(app.config.WeeklyReportFile())
 	if err != nil {
@@ -194,64 +190,23 @@ func (app *App) WeeklyReport() {
 	f.WriteString(wr)
 }
 
-type Dailymemo struct {
-	Filepath string
-	BaseName string
-	Date     time.Time
-	Content  []byte
-}
-
-func (dm Dailymemo) YearNum() int {
-	year, _ := dm.Date.ISOWeek()
-	return year
-}
-func (dm Dailymemo) WeekNum() int {
-	_, week := dm.Date.ISOWeek()
-	return week
-}
-
-func NewDailymemoFromFilepath(fpath string) Dailymemo {
-	basename := filepath.Base(fpath)
-	datestring, found := strings.CutSuffix(basename, ".md")
-	if !found {
-		log.Fatal("failed to cut suffix.")
-	}
-	date, err := time.Parse(FULL_LAYOUT, datestring)
-	if err != nil {
-		log.Fatal(err)
-	}
-	b, err := os.ReadFile(fpath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return Dailymemo{
-		Filepath: fpath,
-		BaseName: basename,
-		Date:     date,
-		Content:  b,
-	}
-}
-
-func weekSpliter(date time.Time, curWeekNum int) string {
+func weekSpliter(date time.Time) string {
 	year, week := date.ISOWeek()
 	return "## " + fmt.Sprint(year) + " | Week " + fmt.Sprint(week) + "\n\n"
 }
 
 // buildWeeklyReport builds weekly report
-func (app *App) buildWeeklyReport(wantfiles []string) string {
+func (app *App) buildWeeklyReport(dms []models.Dailymemo) string {
 	sb := strings.Builder{}
 	var curWeekNum int
-	for _, fpath := range wantfiles {
-		dm := NewDailymemoFromFilepath(fpath)
 
+	for _, dm := range dms {
 		if curWeekNum != dm.WeekNum() {
-			sb.WriteString(weekSpliter(dm.Date, curWeekNum))
+			sb.WriteString(weekSpliter(dm.Date))
 			curWeekNum = dm.WeekNum()
 		}
 
 		sb.WriteString(markdown.BuildHeading(3, dm.BaseName+"\n\n"))
-
 		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(dm.Content, usecases.HEADING_NAME_MEMOS)
 
 		var order = 0
@@ -275,6 +230,7 @@ func (app *App) buildWeeklyReport(wantfiles []string) string {
 			sb.WriteString("\n")
 		}
 	}
+
 	return sb.String()
 }
 
@@ -284,11 +240,8 @@ func (app *App) SaveTips() {
 }
 
 func (app *App) saveTips(pickTip bool) *models.Tip {
-	tRepo := repos.NewTipRepo(app.config, app.gmw)
-	tnRepo := repos.NewTipNodeRepo(app.config, app.gmw)
-
-	checkedTips := tRepo.TipsFromIndexChecked()        // TODO handle error
-	allTips := tnRepo.TipNodesFromTipsDir(checkedTips) // TODO handle error
+	checkedTips := app.tipRepo.TipsFromIndexChecked()           // TODO handle error
+	allTips := app.tipNodeRepo.TipNodesFromTipsDir(checkedTips) // TODO handle error
 	if len(allTips) == 0 {
 		return nil
 	}
