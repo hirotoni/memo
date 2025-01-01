@@ -22,12 +22,9 @@ const (
 )
 
 type App struct {
-	Config        *config.TomlConfig
-	gmw           *markdown.GoldmarkWrapper
-	repos         *repos.Repos
-	dailymemoRepo *repos.DailymemoRepo
-	tipRepo       *repos.TipRepo
-	tipNodeRepo   *repos.TipNodeRepo
+	Config *config.TomlConfig
+	gmw    *markdown.GoldmarkWrapper
+	repos  *repos.Repos
 }
 
 func NewApp() App {
@@ -35,12 +32,9 @@ func NewApp() App {
 	config := config.LoadTomlConfig()
 
 	return App{
-		gmw:           gmw,
-		Config:        config,
-		repos:         repos.NewRepos(config, gmw),
-		dailymemoRepo: repos.NewDailymemoRepo(config, gmw),
-		tipRepo:       repos.NewTipRepo(config, gmw),
-		tipNodeRepo:   repos.NewTipNodeRepo(config, gmw),
+		gmw:    gmw,
+		Config: config,
+		repos:  repos.NewRepos(config, gmw),
 	}
 }
 

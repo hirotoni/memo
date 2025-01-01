@@ -16,8 +16,8 @@ func (app *App) SaveTips() {
 }
 
 func (app *App) saveTips(pickTip bool) *models.Tip {
-	checkedTips := app.tipRepo.TipsFromIndexChecked()           // TODO handle error
-	allTips := app.tipNodeRepo.TipNodesFromTipsDir(checkedTips) // TODO handle error
+	checkedTips := app.repos.TipRepo.TipsFromIndexChecked()           // TODO handle error
+	allTips := app.repos.TipNodeRepo.TipNodesFromTipsDir(checkedTips) // TODO handle error
 	if len(allTips) == 0 {
 		return nil
 	}
