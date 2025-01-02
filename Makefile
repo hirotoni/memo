@@ -35,3 +35,8 @@ cyclo: ## Run gocyclo
 	@command -v gocyclo >/dev/null 2>&1 || { echo >&2 "gocyclo is required but it's not installed.  Aborting."; exit 1; }
 	@echo "Running gocyclo"
 	gocyclo -top 5 .
+
+.PHONY: depgraph
+depgraph: ## Run depgraph
+	@echo "Running depgraph"
+	goda graph ./... | dot -Tsvg -o depgraph.svg
