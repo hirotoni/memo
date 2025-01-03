@@ -17,7 +17,6 @@ const (
 	TIMEZONE        = "Asia/Tokyo"
 	FULL_LAYOUT     = "2006-01-02-Mon"
 	SHORT_LAYOUT    = "2006-01-02"
-	FILENAME_REGEX  = `\d{4}-\d{2}-\d{2}-\S{3}\.md`
 	FILENAME_FORMAT = "%s.md"
 )
 
