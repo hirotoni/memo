@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 
 	"github.com/hirotoni/memo/config"
 	"github.com/hirotoni/memo/models"
@@ -43,4 +44,15 @@ func (repo *DailymemoRepo) Entries() []models.Dailymemo {
 	}
 
 	return dms
+}
+
+var FULL_LAYOUT = "2006-01-02-Mon"
+
+func (repo *DailymemoRepo) FindByDate(date string) models.Dailymemo {
+	_, err := time.Parse(FULL_LAYOUT, date)
+	if err != nil {
+		log.Fatal(err)
+	}
+	filepath := filepath.Join(repo.config.DailymemoDir(), date+".md")
+	return models.NewDailymemoFromFilepath(filepath)
 }
