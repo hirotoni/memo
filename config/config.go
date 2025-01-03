@@ -28,6 +28,14 @@ type TomlConfig struct {
 	Gmw        *markdown.GoldmarkWrapper
 }
 
+func NewTomlConfig(baseDir string, daystoseek int, gmw *markdown.GoldmarkWrapper) *TomlConfig {
+	return &TomlConfig{
+		BaseDir:    baseDir,
+		DaysToSeek: daystoseek,
+		Gmw:        gmw,
+	}
+}
+
 func LoadTomlConfig() *TomlConfig {
 	var tomlConfig = &TomlConfig{}
 

@@ -33,7 +33,7 @@ func NewApp() App {
 	return App{
 		gmw:    gmw,
 		Config: config,
-		repos:  repos.NewRepos(config, gmw),
+		repos:  repos.NewRepos(config),
 	}
 }
 

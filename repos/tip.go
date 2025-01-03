@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/hirotoni/memo/config"
-	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
 	"github.com/yuin/goldmark/ast"
 	extast "github.com/yuin/goldmark/extension/ast"
@@ -13,13 +12,11 @@ import (
 
 type TipRepo struct {
 	config *config.TomlConfig
-	gmw    *markdown.GoldmarkWrapper
 }
 
-func NewTipRepo(config *config.TomlConfig, gmw *markdown.GoldmarkWrapper) *TipRepo {
+func NewTipRepo(config *config.TomlConfig) *TipRepo {
 	return &TipRepo{
 		config: config,
-		gmw:    gmw,
 	}
 }
 
@@ -29,7 +26,7 @@ func (repo *TipRepo) TipsFromIndex() []*models.Tip {
 		log.Fatal(err)
 	}
 
-	doc := repo.gmw.Parse(b)
+	doc := repo.config.Gmw.Parse(b)
 	// doc.Dump(b, 1)
 
 	var tips []*models.Tip

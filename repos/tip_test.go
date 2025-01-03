@@ -40,7 +40,6 @@ func TestTipRepo_TipsFromIndex(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := &TipRepo{
 				config: tt.fields.config,
-				gmw:    tt.fields.gmw,
 			}
 			if got := repo.TipsFromIndex(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TipRepo.TipsFromIndex() = %v, want %v", got, tt.want)
@@ -78,7 +77,6 @@ func TestTipRepo_TipsFromIndexChecked(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := &TipRepo{
 				config: tt.fields.config,
-				gmw:    tt.fields.gmw,
 			}
 			if got := repo.TipsFromIndexChecked(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TipRepo.TipsFromIndexChecked() = %v, want %v", got, tt.want)

@@ -2,7 +2,6 @@ package repos
 
 import (
 	"github.com/hirotoni/memo/config"
-	"github.com/hirotoni/memo/markdown"
 )
 
 type Repos struct {
@@ -11,10 +10,10 @@ type Repos struct {
 	TipNodeRepo   *TipNodeRepo
 }
 
-func NewRepos(config *config.TomlConfig, gmw *markdown.GoldmarkWrapper) *Repos {
+func NewRepos(config *config.TomlConfig) *Repos {
 	return &Repos{
-		DailymemoRepo: NewDailymemoRepo(config, gmw),
-		TipRepo:       NewTipRepo(config, gmw),
-		TipNodeRepo:   NewTipNodeRepo(config, gmw),
+		DailymemoRepo: NewDailymemoRepo(config),
+		TipRepo:       NewTipRepo(config),
+		TipNodeRepo:   NewTipNodeRepo(config),
 	}
 }

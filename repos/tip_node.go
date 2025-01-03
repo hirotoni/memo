@@ -16,13 +16,11 @@ import (
 
 type TipNodeRepo struct {
 	config *config.TomlConfig
-	gmw    *markdown.GoldmarkWrapper
 }
 
-func NewTipNodeRepo(config *config.TomlConfig, gmw *markdown.GoldmarkWrapper) *TipNodeRepo {
+func NewTipNodeRepo(config *config.TomlConfig) *TipNodeRepo {
 	return &TipNodeRepo{
 		config: config,
-		gmw:    gmw,
 	}
 }
 
@@ -109,12 +107,12 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []*models.Tip) []*models.TipN
 	return tns
 }
 func (repo *TipNodeRepo) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
-	_, headings := repo.gmw.GetHeadingNodesByLevel(b, 1)
+	_, headings := repo.config.Gmw.GetHeadingNodesByLevel(b, 1)
 	if len(headings) == 0 {
 		return nil, nil
 	}
 	heading := headings[0]
-	heading1, nodes := repo.gmw.FindHeadingAndGetHangingNodes(b, models.Heading{Level: 1, Text: string(heading.Text(b))})
+	heading1, nodes := repo.config.Gmw.FindHeadingAndGetHangingNodes(b, models.Heading{Level: 1, Text: string(heading.Text(b))})
 
 	heading2s := filter(nodes, func(n ast.Node) bool {
 		h, ok := n.(*ast.Heading)
