@@ -75,12 +75,6 @@ func (app *App) inheritHeading(tb []byte, heading models.Heading) []byte {
 
 // appendTips appends tips
 func (app *App) appendTips(tb []byte) []byte {
-	// tips are the things that you want to remember periodically such as
-	// - ER diagrams, component diagrams, constants of application you are in charge
-	// - product management, development process knowledge
-	// - bookmarks, web links
-	// - life sayings, someone's sayings
-
 	picked := app.saveTips(true)
 
 	// insert todays tip
