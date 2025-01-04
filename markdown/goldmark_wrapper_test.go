@@ -2,10 +2,10 @@ package markdown
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"testing"
 
+	"github.com/hirotoni/memo/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +36,7 @@ func TestGoldmarkWrapper_Render(t *testing.T) {
 			writer := &bytes.Buffer{}
 			gmw.Render(writer, f, doc)
 
-			fmt.Println(writer.String())
+			// fmt.Println(writer.String())
 			assert.Equal(string(f), writer.String())
 
 			if updateGolden {
@@ -44,4 +44,30 @@ func TestGoldmarkWrapper_Render(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGoldmarkWrapper_FindHeadingAndGetHangingNodes(t *testing.T) {
+	assert := assert.New(t)
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{
+			name: "sample",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filename := "./testdata/sample.md"
+			f, err := os.ReadFile(filename)
+			assert.NoError(err)
+
+			gmw := NewGoldmarkWrapper()
+			h := models.NewHeading(2, "ordered list")
+			_, hangingNodes := gmw.FindHeadingAndGetHangingNodes(f, h)
+
+			assert.NotEmpty(hangingNodes)
+		})
+	}
+
 }
