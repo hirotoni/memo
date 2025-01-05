@@ -26,14 +26,16 @@ type App struct {
 	repos  *repos.Repos
 }
 
-func NewApp() App {
-	gmw := markdown.NewGoldmarkWrapper()
-	config := config.LoadTomlConfig()
+func NewApp(cfg *config.TomlConfig) App {
+	if cfg == nil {
+		cfg = config.LoadTomlConfig()
+	}
 
+	gmw := markdown.NewGoldmarkWrapper()
 	return App{
 		gmw:    gmw,
-		Config: config,
-		repos:  repos.NewRepos(config),
+		Config: cfg,
+		repos:  repos.NewRepos(cfg),
 	}
 }
 
