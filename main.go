@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hirotoni/memo/application"
-	"github.com/hirotoni/memo/config"
 	"github.com/urfave/cli/v2"
 )
 
@@ -20,8 +19,7 @@ func init() {
 }
 
 func main() {
-	config := config.LoadTomlConfig()
-	app := application.NewApp(config)
+	app := application.NewApp()
 	app.Initialize()
 
 	cliapp := &cli.App{

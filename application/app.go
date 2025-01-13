@@ -26,17 +26,18 @@ type App struct {
 	repos  *repos.Repos
 }
 
-func NewApp(cfg *config.TomlConfig) App {
-	if cfg == nil {
-		cfg = config.LoadTomlConfig()
-	}
-
+func NewApp() App {
 	gmw := markdown.NewGoldmarkWrapper()
+	conf := config.LoadTomlConfig()
 	return App{
 		gmw:    gmw,
-		Config: cfg,
-		repos:  repos.NewRepos(cfg),
+		Config: conf,
+		repos:  repos.NewRepos(conf),
 	}
+}
+
+func (app *App) WithCustomConfig(conf config.TomlConfig) {
+	app.Config = &conf
 }
 
 // Initialize initializes dirs and files
