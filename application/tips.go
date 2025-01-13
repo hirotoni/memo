@@ -45,9 +45,7 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 	}
 
 	var buf = &bytes.Buffer{}
-	for _, v := range allTips {
-		usecases.PrintTipNode(buf, v)
-	}
+	usecases.PrintTipNodeHeadingStyle(buf, allTips)
 
 	// write tips to index
 	f, err := os.Create(app.Config.TipsIndexFile())
