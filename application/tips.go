@@ -24,24 +24,7 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 
 	var picked *models.Tip
 	if pickTip {
-		notShown := filter(allTips, func(tn *models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
-
-		if len(notShown) == 0 {
-			// reset all tips
-			for _, v := range allTips {
-				v.Tip.Checked = false
-			}
-			notShown = allTips
-		}
-
-		p, _ := randomPick(notShown)
-		picked = &p.Tip
-
-		for _, v := range allTips {
-			if v.Tip.Destination == picked.Destination {
-				v.Tip.Checked = true
-			}
-		}
+		picked = pickRandomTip(allTips)
 	}
 
 	var buf = &bytes.Buffer{}
@@ -58,6 +41,27 @@ func (app *App) saveTips(pickTip bool) *models.Tip {
 	f.Write(tipsb)
 
 	return picked
+}
+
+func pickRandomTip(allTips []*models.TipNode) *models.Tip {
+	notShown := filter(allTips, func(tn *models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
+
+	if len(notShown) == 0 {
+		// reset all tips
+		for _, v := range allTips {
+			v.Tip.Checked = false
+		}
+		notShown = allTips
+	}
+
+	picked, _ := randomPick(notShown)
+
+	for _, v := range allTips {
+		if v.Tip.Destination == picked.Tip.Destination {
+			v.Tip.Checked = true
+		}
+	}
+	return &picked.Tip
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {
