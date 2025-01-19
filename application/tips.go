@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"os"
 
+	"github.com/hirotoni/memo/components"
 	"github.com/hirotoni/memo/models"
-	"github.com/hirotoni/memo/usecases"
 )
 
 // SaveMemoArchives generates memo archives index file
@@ -28,7 +28,7 @@ func (app *App) saveMemoArchives(pickMemoArchive bool) *models.MemoArchive {
 	}
 
 	var buf = &bytes.Buffer{}
-	usecases.PrintMemoArchiveNodeHeadingStyle(buf, allMemoArchives)
+	components.PrintMemoArchiveNodeHeadingStyle(buf, allMemoArchives)
 
 	// write memo archives to index
 	f, err := os.Create(app.Config.MemoArchivesIndexFile())
@@ -36,8 +36,8 @@ func (app *App) saveMemoArchives(pickMemoArchive bool) *models.MemoArchive {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	masb := []byte(usecases.GenerateTemplateString(usecases.TemplateMemoArchivesIndex))
-	masb = app.gmw.InsertTextAfter(masb, usecases.HEADING_NAME_MEMOARCHIVES_INDEX, buf.String())
+	masb := []byte(components.GenerateTemplateString(components.TemplateMemoArchivesIndex))
+	masb = app.gmw.InsertTextAfter(masb, components.HEADING_NAME_MEMOARCHIVES_INDEX, buf.String())
 	f.Write(masb)
 
 	return picked

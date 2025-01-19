@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/hirotoni/memo/components"
 	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
-	"github.com/hirotoni/memo/usecases"
 )
 
 // GenerateMemo generates memo file
@@ -41,9 +41,9 @@ func (app *App) generateMemo(date string) []byte {
 		log.Fatal(err)
 	}
 
-	b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, date)
-	b = app.inheritHeading(b, usecases.HEADING_NAME_TODOS)
-	b = app.inheritHeading(b, usecases.HEADING_NAME_WANTTODOS)
+	b = app.gmw.InsertTextAfter(b, components.HEADING_NAME_TITLE, date)
+	b = app.inheritHeading(b, components.HEADING_NAME_TODOS)
+	b = app.inheritHeading(b, components.HEADING_NAME_WANTTODOS)
 	b = app.appendMemoArchives(b)
 
 	return b
@@ -83,7 +83,7 @@ func (app *App) appendMemoArchives(tb []byte) []byte {
 			picked.Text,
 			picked.Destination,
 		))
-		tb = app.gmw.InsertTextAfter(tb, usecases.HEADING_NAME_TODAYSMEMOARCHIVE, chosenMemoArchive)
+		tb = app.gmw.InsertTextAfter(tb, components.HEADING_NAME_TODAYSMEMOARCHIVE, chosenMemoArchive)
 	}
 
 	return tb

@@ -6,11 +6,11 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/hirotoni/memo/components"
 	"github.com/hirotoni/memo/config"
 	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
 	"github.com/hirotoni/memo/repos"
-	"github.com/hirotoni/memo/usecases"
 )
 
 const (
@@ -44,11 +44,11 @@ func (app *App) WithCustomConfig(conf config.TomlConfig) {
 func (app *App) Initialize() {
 	// dailymemo
 	initializeDir(app.Config.DailymemoDir())
-	initializeFile(app.Config.DailymemoTemplateFile(), usecases.TemplateDailymemo)
+	initializeFile(app.Config.DailymemoTemplateFile(), components.TemplateDailymemo)
 	// memoarchives
 	initializeDir(app.Config.MemoArchivesDir())
-	initializeFile(app.Config.MemoArchivesTemplateFile(), usecases.TemplateMemoArchives)
-	initializeFile(app.Config.MemoArchivesIndexFile(), usecases.TemplateMemoArchivesIndex)
+	initializeFile(app.Config.MemoArchivesTemplateFile(), components.TemplateMemoArchives)
+	initializeFile(app.Config.MemoArchivesIndexFile(), components.TemplateMemoArchivesIndex)
 }
 
 func initializeFile(filepath string, template models.Template) {
@@ -60,7 +60,7 @@ func initializeFile(filepath string, template models.Template) {
 		}
 		defer f.Close()
 
-		f.WriteString(usecases.GenerateTemplateString(template))
+		f.WriteString(components.GenerateTemplateString(template))
 
 		log.Printf("file initialized: %s", filepath)
 	}

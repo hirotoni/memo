@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hirotoni/memo/components"
 	"github.com/hirotoni/memo/markdown"
-	"github.com/hirotoni/memo/usecases"
 	"github.com/yuin/goldmark/ast"
 )
 
@@ -23,7 +23,7 @@ func (app *App) WeeklyReport() {
 	}
 	defer f.Close()
 
-	f.WriteString(usecases.GenerateTemplateString(usecases.TemplateWeeklyReport) + "\n")
+	f.WriteString(components.GenerateTemplateString(components.TemplateWeeklyReport) + "\n")
 	f.WriteString(wr)
 }
 
@@ -45,7 +45,7 @@ func (app *App) buildWeeklyReport() string {
 		}
 
 		sb.WriteString(markdown.BuildHeading(3, dm.BaseName+"\n\n"))
-		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(dm.Content, usecases.HEADING_NAME_MEMOS)
+		_, hangingNodes := app.gmw.FindHeadingAndGetHangingNodes(dm.Content, components.HEADING_NAME_MEMOS)
 
 		var order = 0
 		for _, node := range hangingNodes {
