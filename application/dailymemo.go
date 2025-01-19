@@ -44,7 +44,7 @@ func (app *App) generateMemo(date string) []byte {
 	b = app.gmw.InsertTextAfter(b, components.HEADING_NAME_TITLE, date)
 	b = app.inheritHeading(b, components.HEADING_NAME_TODOS)
 	b = app.inheritHeading(b, components.HEADING_NAME_WANTTODOS)
-	b = app.appendMemoArchives(b)
+	b = app.appendMemoArchive(b)
 
 	return b
 }
@@ -55,26 +55,27 @@ func (app *App) inheritHeading(tb []byte, heading models.Heading) []byte {
 	today := time.Now()
 	for i := range make([]int, app.Config.DaysToSeek) {
 		previousDay := today.AddDate(0, 0, -1*(i+1)).Format(FULL_LAYOUT)
-		pb, err := os.ReadFile(filepath.Join(app.Config.DailymemoDir(), previousDay+".md"))
-		if errors.Is(err, os.ErrNotExist) {
-			if i+1 == app.Config.DaysToSeek {
-				log.Printf("previous memos were not found in previous %d days.", app.Config.DaysToSeek)
+		md, err := app.repos.DailymemoRepo.FindByDate(previousDay)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				if i+1 == app.Config.DaysToSeek {
+					log.Printf("previous memos were not found in previous %d days.", app.Config.DaysToSeek)
+				}
+				continue
 			}
-			continue
-		} else if err != nil {
 			log.Fatal(err)
 		}
 
-		_, nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(pb, heading)
-		tb = app.gmw.InsertNodesAfter(tb, heading, pb, nodesToInsert)
+		_, nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(md.Content, heading)
+		tb = app.gmw.InsertNodesAfter(tb, heading, md.Content, nodesToInsert)
 		break
 	}
 
 	return tb
 }
 
-// appendMemoArchives appends memo archives
-func (app *App) appendMemoArchives(tb []byte) []byte {
+// appendMemoArchive appends memo archives
+func (app *App) appendMemoArchive(tb []byte) []byte {
 	picked := app.saveMemoArchives(true)
 
 	// insert todays memo archive

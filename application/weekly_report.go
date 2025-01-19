@@ -37,7 +37,7 @@ func (app *App) buildWeeklyReport() string {
 	var sb strings.Builder
 	var curWeekNum int
 
-	dms := app.repos.DailymemoRepo.Entries()
+	dms, _ := app.repos.DailymemoRepo.Entries()
 	for _, dm := range dms {
 		if curWeekNum != dm.WeekNum() {
 			sb.WriteString(weekSpliter(dm.Date))
