@@ -6,11 +6,11 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 )
 
 func (app *App) EditConfig() {
-	configFile, err := config.ConfigFilePath()
+	configFile, err := configs.ConfigFilePath()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,6 +25,6 @@ func (app *App) EditConfig() {
 }
 
 func (app *App) ShowConfig() {
-	tomlConfig := config.LoadTomlConfig()
+	tomlConfig := configs.LoadTomlConfig()
 	fmt.Printf("%+v", tomlConfig)
 }

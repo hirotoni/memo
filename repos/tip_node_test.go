@@ -3,7 +3,7 @@ package repos
 import (
 	"testing"
 
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
 	"github.com/stretchr/testify/assert"
@@ -11,14 +11,14 @@ import (
 
 func TestMemoArchiveNodeRepo_MemoArchiveNodesFromMemoArchivesDir(t *testing.T) {
 	type fields struct {
-		config *config.TomlConfig
+		config *configs.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
 	}
 	type args struct {
 		shown []*models.MemoArchive
 	}
 
-	testConfig := config.LoadTomlConfig()
+	testConfig := configs.LoadTomlConfig()
 	testConfig.BaseDir = "testdata"
 
 	tests := []struct {

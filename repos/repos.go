@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 )
 
 type Repos struct {
@@ -10,7 +10,7 @@ type Repos struct {
 	MemoArchiveNodeRepo *MemoArchiveNodeRepo
 }
 
-func NewRepos(config *config.TomlConfig) *Repos {
+func NewRepos(config *configs.TomlConfig) *Repos {
 	return &Repos{
 		DailymemoRepo:       NewDailymemoRepo(config),
 		MemoArchiveRepo:     NewMemoArchiveRepo(config),

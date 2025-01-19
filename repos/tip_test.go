@@ -4,18 +4,18 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
 )
 
 func TestMemoArchiveRepo_MemoArchivesFromIndex(t *testing.T) {
 	type fields struct {
-		config *config.TomlConfig
+		config *configs.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
 	}
 
-	testConfig := config.LoadTomlConfig()
+	testConfig := configs.LoadTomlConfig()
 	testConfig.BaseDir = "testdata"
 
 	tests := []struct {
@@ -50,11 +50,11 @@ func TestMemoArchiveRepo_MemoArchivesFromIndex(t *testing.T) {
 
 func TestMemoArchiveRepo_MemoArchivesFromIndexChecked(t *testing.T) {
 	type fields struct {
-		config *config.TomlConfig
+		config *configs.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
 	}
 
-	testConfig := config.LoadTomlConfig()
+	testConfig := configs.LoadTomlConfig()
 	testConfig.BaseDir = "testdata"
 
 	tests := []struct {

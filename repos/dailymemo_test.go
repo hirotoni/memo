@@ -3,7 +3,7 @@ package repos
 import (
 	"testing"
 
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 	"github.com/hirotoni/memo/markdown"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,7 +11,7 @@ import (
 func TestDailymemoRepo_Entry(t *testing.T) {
 	assert := assert.New(t)
 
-	config := config.NewTomlConfig("testdata", 7, markdown.NewGoldmarkWrapper())
+	config := configs.NewTomlConfig("testdata", 7, markdown.NewGoldmarkWrapper())
 	repo := NewDailymemoRepo(config)
 	tests := []struct {
 		name string
@@ -34,7 +34,7 @@ func TestDailymemoRepo_Entry(t *testing.T) {
 func TestDailymemoRepo_Entries(t *testing.T) {
 	assert := assert.New(t)
 
-	config := config.NewTomlConfig("testdata", 7, markdown.NewGoldmarkWrapper())
+	config := configs.NewTomlConfig("testdata", 7, markdown.NewGoldmarkWrapper())
 	repo := NewDailymemoRepo(config)
 	tests := []struct {
 		name string

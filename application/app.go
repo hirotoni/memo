@@ -7,7 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/hirotoni/memo/components"
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
 	"github.com/hirotoni/memo/repos"
@@ -21,14 +21,14 @@ const (
 )
 
 type App struct {
-	Config *config.TomlConfig
+	Config *configs.TomlConfig
 	gmw    *markdown.GoldmarkWrapper
 	repos  *repos.Repos
 }
 
 func NewApp() App {
 	gmw := markdown.NewGoldmarkWrapper()
-	conf := config.LoadTomlConfig()
+	conf := configs.LoadTomlConfig()
 	return App{
 		gmw:    gmw,
 		Config: conf,
@@ -36,7 +36,7 @@ func NewApp() App {
 	}
 }
 
-func (app *App) WithCustomConfig(conf config.TomlConfig) {
+func (app *App) WithCustomConfig(conf configs.TomlConfig) {
 	app.Config = &conf
 }
 

@@ -8,15 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 	"github.com/hirotoni/memo/models"
 )
 
 type DailymemoRepo struct {
-	config *config.TomlConfig
+	config *configs.TomlConfig
 }
 
-func NewDailymemoRepo(config *config.TomlConfig) *DailymemoRepo {
+func NewDailymemoRepo(config *configs.TomlConfig) *DailymemoRepo {
 	return &DailymemoRepo{
 		config: config,
 	}

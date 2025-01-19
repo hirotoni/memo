@@ -4,17 +4,17 @@ import (
 	"log"
 	"os"
 
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 	"github.com/hirotoni/memo/models"
 	"github.com/yuin/goldmark/ast"
 	extast "github.com/yuin/goldmark/extension/ast"
 )
 
 type MemoArchiveRepo struct {
-	config *config.TomlConfig
+	config *configs.TomlConfig
 }
 
-func NewMemoArchiveRepo(config *config.TomlConfig) *MemoArchiveRepo {
+func NewMemoArchiveRepo(config *configs.TomlConfig) *MemoArchiveRepo {
 	return &MemoArchiveRepo{
 		config: config,
 	}

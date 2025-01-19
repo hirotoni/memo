@@ -8,17 +8,17 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/hirotoni/memo/config"
+	"github.com/hirotoni/memo/configs"
 	"github.com/hirotoni/memo/markdown"
 	"github.com/hirotoni/memo/models"
 	"github.com/yuin/goldmark/ast"
 )
 
 type MemoArchiveNodeRepo struct {
-	config *config.TomlConfig
+	config *configs.TomlConfig
 }
 
-func NewMemoArchiveNodeRepo(config *config.TomlConfig) *MemoArchiveNodeRepo {
+func NewMemoArchiveNodeRepo(config *configs.TomlConfig) *MemoArchiveNodeRepo {
 	return &MemoArchiveNodeRepo{
 		config: config,
 	}
