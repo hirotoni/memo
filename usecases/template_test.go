@@ -24,13 +24,13 @@ func TestGenerateTemplateString(t *testing.T) {
 	if errors.Is(err, os.ErrNotExist) {
 		weeklyReportGolden = []byte{}
 	}
-	tipsGolden, err := os.ReadFile("./testdata/templatetips.md.golden")
+	memoArchivesGolden, err := os.ReadFile("./testdata/templatememoarchives.md.golden")
 	if errors.Is(err, os.ErrNotExist) {
-		tipsGolden = []byte{}
+		memoArchivesGolden = []byte{}
 	}
-	tipsIndexGolden, err := os.ReadFile("./testdata/templatetipsindex.md.golden")
+	memoArchivesIndexGolden, err := os.ReadFile("./testdata/templatememoarchivesindex.md.golden")
 	if errors.Is(err, os.ErrNotExist) {
-		tipsIndexGolden = []byte{}
+		memoArchivesIndexGolden = []byte{}
 	}
 
 	tests := []struct {
@@ -49,14 +49,14 @@ func TestGenerateTemplateString(t *testing.T) {
 			want: string(weeklyReportGolden),
 		},
 		{
-			name: "templatetips",
-			args: args{t: TemplateTips},
-			want: string(tipsGolden),
+			name: "templatememoarchives",
+			args: args{t: TemplateMemoArchives},
+			want: string(memoArchivesGolden),
 		},
 		{
-			name: "templatetipsindex",
-			args: args{t: TemplateTipsIndex},
-			want: string(tipsIndexGolden),
+			name: "templatememoarchivesindex",
+			args: args{t: TemplateMemoArchivesIndex},
+			want: string(memoArchivesIndexGolden),
 		},
 	}
 	for _, tt := range tests {

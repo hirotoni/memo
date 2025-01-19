@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPrintTipNode(t *testing.T) {
+func TestPrintMemoArchiveNode(t *testing.T) {
 	type args struct {
 		b  *bytes.Buffer
-		tn *models.TipNode
+		tn *models.MemoArchiveNode
 	}
 	tests := []struct {
 		name string
@@ -22,11 +22,11 @@ func TestPrintTipNode(t *testing.T) {
 			name: "DIR",
 			args: args{
 				b: &bytes.Buffer{},
-				tn: &models.TipNode{
-					Kind:  models.TIPNODEKIND_DIR,
+				tn: &models.MemoArchiveNode{
+					Kind:  models.MEMOARCHIVENODEKIND_DIR,
 					Depth: 1,
 					Text:  "text",
-					Tip: models.Tip{
+					MemoArchive: models.MemoArchive{
 						Text:        "text",
 						Destination: "destination",
 						Checked:     false,
@@ -39,11 +39,11 @@ func TestPrintTipNode(t *testing.T) {
 			name: "TITLE",
 			args: args{
 				b: &bytes.Buffer{},
-				tn: &models.TipNode{
-					Kind:  models.TIPNODEKIND_TITLE,
+				tn: &models.MemoArchiveNode{
+					Kind:  models.MEMOARCHIVENODEKIND_TITLE,
 					Depth: 1,
 					Text:  "text",
-					Tip: models.Tip{
+					MemoArchive: models.MemoArchive{
 						Text:        "text",
 						Destination: "destination",
 						Checked:     false,
@@ -53,14 +53,14 @@ func TestPrintTipNode(t *testing.T) {
 			want: "  - text\n",
 		},
 		{
-			name: "TIP unchecked",
+			name: "MEMOARCHIVE unchecked",
 			args: args{
 				b: &bytes.Buffer{},
-				tn: &models.TipNode{
-					Kind:  models.TIPNODEKIND_TIP,
+				tn: &models.MemoArchiveNode{
+					Kind:  models.MEMOARCHIVENODEKIND_MEMO,
 					Depth: 1,
 					Text:  "text",
-					Tip: models.Tip{
+					MemoArchive: models.MemoArchive{
 						Text:        "text",
 						Destination: "destination",
 						Checked:     false,
@@ -70,14 +70,14 @@ func TestPrintTipNode(t *testing.T) {
 			want: "  - [ ] [text](destination)\n",
 		},
 		{
-			name: "TIP checked",
+			name: "MEMOARCHIVE checked",
 			args: args{
 				b: &bytes.Buffer{},
-				tn: &models.TipNode{
-					Kind:  models.TIPNODEKIND_TIP,
+				tn: &models.MemoArchiveNode{
+					Kind:  models.MEMOARCHIVENODEKIND_MEMO,
 					Depth: 1,
 					Text:  "text",
-					Tip: models.Tip{
+					MemoArchive: models.MemoArchive{
 						Text:        "text",
 						Destination: "destination",
 						Checked:     true,
@@ -90,16 +90,16 @@ func TestPrintTipNode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert := assert.New(t)
-			PrintTipNode(tt.args.b, tt.args.tn)
+			PrintMemoArchiveNode(tt.args.b, tt.args.tn)
 			assert.Equal(tt.want, tt.args.b.String())
 		})
 	}
 }
 
-func TestPrintTipNodeHeadingStyleSlice(t *testing.T) {
+func TestPrintMemoArchiveNodeHeadingStyleSlice(t *testing.T) {
 	type args struct {
 		b   *bytes.Buffer
-		tns []*models.TipNode
+		tns []*models.MemoArchiveNode
 	}
 	tests := []struct {
 		name string
@@ -110,12 +110,12 @@ func TestPrintTipNodeHeadingStyleSlice(t *testing.T) {
 			name: "DIR",
 			args: args{
 				b: &bytes.Buffer{},
-				tns: []*models.TipNode{
+				tns: []*models.MemoArchiveNode{
 					{
-						Kind:  models.TIPNODEKIND_DIR,
+						Kind:  models.MEMOARCHIVENODEKIND_DIR,
 						Depth: 1,
 						Text:  "text",
-						Tip: models.Tip{
+						MemoArchive: models.MemoArchive{
 							Text:        "text",
 							Destination: "destination",
 							Checked:     false,
@@ -129,12 +129,12 @@ func TestPrintTipNodeHeadingStyleSlice(t *testing.T) {
 			name: "TITLE",
 			args: args{
 				b: &bytes.Buffer{},
-				tns: []*models.TipNode{
+				tns: []*models.MemoArchiveNode{
 					{
-						Kind:  models.TIPNODEKIND_TITLE,
+						Kind:  models.MEMOARCHIVENODEKIND_TITLE,
 						Depth: 1,
 						Text:  "text",
-						Tip: models.Tip{
+						MemoArchive: models.MemoArchive{
 							Text:        "text",
 							Destination: "destination",
 							Checked:     false,
@@ -145,15 +145,15 @@ func TestPrintTipNodeHeadingStyleSlice(t *testing.T) {
 			want: "### text\n\n",
 		},
 		{
-			name: "TIP unchecked",
+			name: "MEMOARCHIVE unchecked",
 			args: args{
 				b: &bytes.Buffer{},
-				tns: []*models.TipNode{
+				tns: []*models.MemoArchiveNode{
 					{
-						Kind:  models.TIPNODEKIND_TIP,
+						Kind:  models.MEMOARCHIVENODEKIND_MEMO,
 						Depth: 1,
 						Text:  "text",
-						Tip: models.Tip{
+						MemoArchive: models.MemoArchive{
 							Text:        "text",
 							Destination: "destination",
 							Checked:     false,
@@ -164,15 +164,15 @@ func TestPrintTipNodeHeadingStyleSlice(t *testing.T) {
 			want: "- [ ] [text](destination)\n",
 		},
 		{
-			name: "TIP checked",
+			name: "MEMOARCHIVE checked",
 			args: args{
 				b: &bytes.Buffer{},
-				tns: []*models.TipNode{
+				tns: []*models.MemoArchiveNode{
 					{
-						Kind:  models.TIPNODEKIND_TIP,
+						Kind:  models.MEMOARCHIVENODEKIND_MEMO,
 						Depth: 1,
 						Text:  "text",
-						Tip: models.Tip{
+						MemoArchive: models.MemoArchive{
 							Text:        "text",
 							Destination: "destination",
 							Checked:     true,
@@ -186,7 +186,7 @@ func TestPrintTipNodeHeadingStyleSlice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert := assert.New(t)
-			PrintTipNodeHeadingStyle(tt.args.b, tt.args.tns)
+			PrintMemoArchiveNodeHeadingStyle(tt.args.b, tt.args.tns)
 			assert.Equal(tt.want, tt.args.b.String())
 		})
 	}

@@ -1,16 +1,16 @@
 package models
 
-type TipNodeKind int
+type MemoArchiveNodeKind int
 
 const (
-	TIPNODEKIND_DIR   TipNodeKind = iota // 0
-	TIPNODEKIND_TITLE                    // 1
-	TIPNODEKIND_TIP                      // 2
+	MEMOARCHIVENODEKIND_DIR   MemoArchiveNodeKind = iota // 0
+	MEMOARCHIVENODEKIND_TITLE                            // 1
+	MEMOARCHIVENODEKIND_MEMO                             // 2
 )
 
-type TipNode struct {
-	Kind  TipNodeKind
-	Tip   Tip
-	Text  string
-	Depth int
+type MemoArchiveNode struct {
+	Kind        MemoArchiveNodeKind
+	MemoArchive MemoArchive
+	Text        string
+	Depth       int
 }

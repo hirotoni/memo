@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTipNodeRepo_TipNodesFromTipsDir(t *testing.T) {
+func TestMemoArchiveNodeRepo_MemoArchiveNodesFromMemoArchivesDir(t *testing.T) {
 	type fields struct {
 		config *config.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
 	}
 	type args struct {
-		shown []*models.Tip
+		shown []*models.MemoArchive
 	}
 
 	testConfig := config.LoadTomlConfig()
@@ -25,78 +25,78 @@ func TestTipNodeRepo_TipNodesFromTipsDir(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   []*models.TipNode
+		want   []*models.MemoArchiveNode
 	}{
 		{
-			name: "Test TipNodesFromTipsDir",
+			name: "Test MemoArchiveNodesFromMemoArchviesDir",
 			fields: fields{
 				config: testConfig,
 				gmw:    markdown.NewGoldmarkWrapper(),
 			},
 			args: args{
-				shown: []*models.Tip{},
+				shown: []*models.MemoArchive{},
 			},
-			want: []*models.TipNode{
+			want: []*models.MemoArchiveNode{
 				{
-					Kind: models.TIPNODEKIND_DIR, Text: "testtips", Depth: 0,
+					Kind: models.MEMOARCHIVENODEKIND_DIR, Text: "testmemoarchives", Depth: 0,
 				},
 				{
-					Kind: models.TIPNODEKIND_TITLE, Text: "testtip", Depth: 1,
-					Tip: models.Tip{Text: "testtip", Destination: "../tips/testtips/testtip-1.md", Checked: false},
+					Kind: models.MEMOARCHIVENODEKIND_TITLE, Text: "testmemoarchive", Depth: 1,
+					MemoArchive: models.MemoArchive{Text: "testmemoarchive", Destination: "../memoarchives/testmemoarchives/testmemoarchive-1.md", Checked: false},
 				},
 				{
-					Kind: models.TIPNODEKIND_TIP, Text: "super duper tipper", Depth: 2,
-					Tip: models.Tip{Text: "super duper tipper", Destination: "../tips/testtips/testtip-1.md#super-duper-tipper", Checked: false},
+					Kind: models.MEMOARCHIVENODEKIND_MEMO, Text: "super duper pepper", Depth: 2,
+					MemoArchive: models.MemoArchive{Text: "super duper pepper", Destination: "../memoarchives/testmemoarchives/testmemoarchive-1.md#super-duper-pepper", Checked: false},
 				},
 				{
-					Kind: models.TIPNODEKIND_TITLE, Text: "testtip", Depth: 1,
-					Tip: models.Tip{Text: "testtip", Destination: "../tips/testtips/testtip-2.md", Checked: false},
+					Kind: models.MEMOARCHIVENODEKIND_TITLE, Text: "testmemoarchive", Depth: 1,
+					MemoArchive: models.MemoArchive{Text: "testmemoarchive", Destination: "../memoarchives/testmemoarchives/testmemoarchive-2.md", Checked: false},
 				},
 				{
-					Kind: models.TIPNODEKIND_TIP, Text: "super duper tipper", Depth: 2,
-					Tip: models.Tip{Text: "super duper tipper", Destination: "../tips/testtips/testtip-2.md#super-duper-tipper", Checked: false},
+					Kind: models.MEMOARCHIVENODEKIND_MEMO, Text: "super duper pepper", Depth: 2,
+					MemoArchive: models.MemoArchive{Text: "super duper pepper", Destination: "../memoarchives/testmemoarchives/testmemoarchive-2.md#super-duper-pepper", Checked: false},
 				},
 			},
 		},
 		{
-			name: "Test TipNodesFromTipsDir checked",
+			name: "Test MemoArchiveNodesFromMemoArchivesDir checked",
 			fields: fields{
 				config: testConfig,
 				gmw:    markdown.NewGoldmarkWrapper(),
 			},
 			args: args{
-				shown: []*models.Tip{
-					{Text: "testtip", Destination: "../tips/testtips/testtip-1.md#super-duper-tipper", Checked: false},
+				shown: []*models.MemoArchive{
+					{Text: "testmemoarchive", Destination: "../memoarchives/testmemoarchives/testmemoarchive-1.md#super-duper-pepper", Checked: false},
 				},
 			},
-			want: []*models.TipNode{
+			want: []*models.MemoArchiveNode{
 				{
-					Kind: models.TIPNODEKIND_DIR, Text: "testtips", Depth: 0,
+					Kind: models.MEMOARCHIVENODEKIND_DIR, Text: "testmemoarchives", Depth: 0,
 				},
 				{
-					Kind: models.TIPNODEKIND_TITLE, Text: "testtip", Depth: 1,
-					Tip: models.Tip{Text: "testtip", Destination: "../tips/testtips/testtip-1.md", Checked: false},
+					Kind: models.MEMOARCHIVENODEKIND_TITLE, Text: "testmemoarchive", Depth: 1,
+					MemoArchive: models.MemoArchive{Text: "testmemoarchive", Destination: "../memoarchives/testmemoarchives/testmemoarchive-1.md", Checked: false},
 				},
 				{
-					Kind: models.TIPNODEKIND_TIP, Text: "super duper tipper", Depth: 2,
-					Tip: models.Tip{Text: "super duper tipper", Destination: "../tips/testtips/testtip-1.md#super-duper-tipper", Checked: true},
+					Kind: models.MEMOARCHIVENODEKIND_MEMO, Text: "super duper pepper", Depth: 2,
+					MemoArchive: models.MemoArchive{Text: "super duper pepper", Destination: "../memoarchives/testmemoarchives/testmemoarchive-1.md#super-duper-pepper", Checked: true},
 				},
 				{
-					Kind: models.TIPNODEKIND_TITLE, Text: "testtip", Depth: 1,
-					Tip: models.Tip{Text: "testtip", Destination: "../tips/testtips/testtip-2.md", Checked: false},
+					Kind: models.MEMOARCHIVENODEKIND_TITLE, Text: "testmemoarchive", Depth: 1,
+					MemoArchive: models.MemoArchive{Text: "testmemoarchive", Destination: "../memoarchives/testmemoarchives/testmemoarchive-2.md", Checked: false},
 				},
 				{
-					Kind: models.TIPNODEKIND_TIP, Text: "super duper tipper", Depth: 2,
-					Tip: models.Tip{Text: "super duper tipper", Destination: "../tips/testtips/testtip-2.md#super-duper-tipper", Checked: false},
+					Kind: models.MEMOARCHIVENODEKIND_MEMO, Text: "super duper pepper", Depth: 2,
+					MemoArchive: models.MemoArchive{Text: "super duper pepper", Destination: "../memoarchives/testmemoarchives/testmemoarchive-2.md#super-duper-pepper", Checked: false},
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := NewTipNodeRepo(tt.fields.config)
+			repo := NewMemoArchiveNodeRepo(tt.fields.config)
 			assert := assert.New(t)
-			assert.Equal(tt.want, repo.TipNodesFromTipsDir(tt.args.shown))
+			assert.Equal(tt.want, repo.MemoArchiveNodesFromMemoArchivesDir(tt.args.shown))
 		})
 	}
 }

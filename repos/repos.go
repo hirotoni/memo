@@ -5,15 +5,15 @@ import (
 )
 
 type Repos struct {
-	DailymemoRepo *DailymemoRepo
-	TipRepo       *TipRepo
-	TipNodeRepo   *TipNodeRepo
+	DailymemoRepo       *DailymemoRepo
+	MemoArchiveRepo     *MemoArchiveRepo
+	MemoArchiveNodeRepo *MemoArchiveNodeRepo
 }
 
 func NewRepos(config *config.TomlConfig) *Repos {
 	return &Repos{
-		DailymemoRepo: NewDailymemoRepo(config),
-		TipRepo:       NewTipRepo(config),
-		TipNodeRepo:   NewTipNodeRepo(config),
+		DailymemoRepo:       NewDailymemoRepo(config),
+		MemoArchiveRepo:     NewMemoArchiveRepo(config),
+		MemoArchiveNodeRepo: NewMemoArchiveNodeRepo(config),
 	}
 }

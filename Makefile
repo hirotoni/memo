@@ -14,9 +14,9 @@ new-truncate: ## Create memo after truncating the file if it exists
 weekly: ## Create weekly report
 	go run . weekly
 
-.PHONY: tips
-tips: ## Generate tips index
-	go run . tips
+.PHONY: memoarchives
+memoarchives: ## Generate memoarchives index
+	go run . memoarchives
 
 .PHONY: config
 config: ## Edit config file

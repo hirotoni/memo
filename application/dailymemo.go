@@ -44,7 +44,7 @@ func (app *App) generateMemo(date string) []byte {
 	b = app.gmw.InsertTextAfter(b, usecases.HEADING_NAME_TITLE, date)
 	b = app.inheritHeading(b, usecases.HEADING_NAME_TODOS)
 	b = app.inheritHeading(b, usecases.HEADING_NAME_WANTTODOS)
-	b = app.appendTips(b)
+	b = app.appendMemoArchives(b)
 
 	return b
 }
@@ -73,17 +73,17 @@ func (app *App) inheritHeading(tb []byte, heading models.Heading) []byte {
 	return tb
 }
 
-// appendTips appends tips
-func (app *App) appendTips(tb []byte) []byte {
-	picked := app.saveTips(true)
+// appendMemoArchives appends memo archives
+func (app *App) appendMemoArchives(tb []byte) []byte {
+	picked := app.saveMemoArchives(true)
 
-	// insert todays tip
+	// insert todays memo archive
 	if picked != nil && picked.Destination != "" {
-		chosenTip := markdown.BuildList(markdown.BuildLink(
+		chosenMemoArchive := markdown.BuildList(markdown.BuildLink(
 			picked.Text,
 			picked.Destination,
 		))
-		tb = app.gmw.InsertTextAfter(tb, usecases.HEADING_NAME_TODAYSTIP, chosenTip)
+		tb = app.gmw.InsertTextAfter(tb, usecases.HEADING_NAME_TODAYSMEMOARCHIVE, chosenMemoArchive)
 	}
 
 	return tb

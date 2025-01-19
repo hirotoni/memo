@@ -9,21 +9,21 @@ import (
 
 var (
 	// daily memo
-	HEADING_NAME_TITLE     = models.NewHeading(1, "daily memo")
-	HEADING_NAME_TODAYSTIP = models.NewHeading(2, "today's tip")
-	HEADING_NAME_TODOS     = models.NewHeading(2, "todos")
-	HEADING_NAME_WANTTODOS = models.NewHeading(2, "wanttodos")
-	HEADING_NAME_MEMOS     = models.NewHeading(2, "memos")
+	HEADING_NAME_TITLE             = models.NewHeading(1, "daily memo")
+	HEADING_NAME_TODAYSMEMOARCHIVE = models.NewHeading(2, "today's memo archive")
+	HEADING_NAME_TODOS             = models.NewHeading(2, "todos")
+	HEADING_NAME_WANTTODOS         = models.NewHeading(2, "wanttodos")
+	HEADING_NAME_MEMOS             = models.NewHeading(2, "memos")
 	// weekly report
 	HEADING_NAME_WEEKLYREPORT = models.NewHeading(1, "Weekly Report")
-	// tips index
-	HEADING_NAME_TIPSINDEX = models.NewHeading(1, "Tips Index")
+	// memo archives index
+	HEADING_NAME_MEMOARCHIVES_INDEX = models.NewHeading(1, "Memo Archives Index")
 )
 
 var (
 	dailymemoHeadings = []models.Heading{
 		HEADING_NAME_TITLE,
-		HEADING_NAME_TODAYSTIP,
+		HEADING_NAME_TODAYSMEMOARCHIVE,
 		HEADING_NAME_TODOS,
 		HEADING_NAME_WANTTODOS,
 		HEADING_NAME_MEMOS,
@@ -31,21 +31,21 @@ var (
 	weeklyReportHeadings = []models.Heading{
 		HEADING_NAME_WEEKLYREPORT,
 	}
-	tipsHeadings = []models.Heading{
-		models.NewHeading(1, "sushi (<- tip category)"),
-		models.NewHeading(2, "how to eat sushi (<- tip title in heading level 2)"),
-		models.NewHeading(2, "how to roll sushi (<- another tip)"),
+	memoArchivesHeadings = []models.Heading{
+		models.NewHeading(1, "sushi (<- memo category)"),
+		models.NewHeading(2, "how to eat sushi (<- memo title in heading level 2)"),
+		models.NewHeading(2, "how to roll sushi (<- another memo)"),
 	}
-	tipsIndexHeadings = []models.Heading{
-		HEADING_NAME_TIPSINDEX,
+	memoArchivesIndexHeadings = []models.Heading{
+		HEADING_NAME_MEMOARCHIVES_INDEX,
 	}
 )
 
 var (
-	TemplateDailymemo    = models.NewTemplate(dailymemoHeadings)
-	TemplateWeeklyReport = models.NewTemplate(weeklyReportHeadings)
-	TemplateTips         = models.NewTemplate(tipsHeadings)
-	TemplateTipsIndex    = models.NewTemplate(tipsIndexHeadings)
+	TemplateDailymemo         = models.NewTemplate(dailymemoHeadings)
+	TemplateWeeklyReport      = models.NewTemplate(weeklyReportHeadings)
+	TemplateMemoArchives      = models.NewTemplate(memoArchivesHeadings)
+	TemplateMemoArchivesIndex = models.NewTemplate(memoArchivesIndexHeadings)
 )
 
 func GenerateTemplateString(t models.Template) string {

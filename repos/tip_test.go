@@ -9,7 +9,7 @@ import (
 	"github.com/hirotoni/memo/models"
 )
 
-func TestTipRepo_TipsFromIndex(t *testing.T) {
+func TestMemoArchiveRepo_MemoArchivesFromIndex(t *testing.T) {
 	type fields struct {
 		config *config.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
@@ -21,34 +21,34 @@ func TestTipRepo_TipsFromIndex(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   []*models.Tip
+		want   []*models.MemoArchive
 	}{
 		{
-			name: "Test TipsFromIndex",
+			name: "Test MemoArchivesFromIndex",
 			fields: fields{
 				config: testConfig,
 				gmw:    markdown.NewGoldmarkWrapper(),
 			},
-			want: []*models.Tip{
-				{Text: "some tip", Destination: "somewhere", Checked: false},
-				{Text: "another tip", Destination: "anywhere", Checked: true},
-				{Text: "yet another tip", Destination: "everywhere", Checked: false},
+			want: []*models.MemoArchive{
+				{Text: "some memoarchive", Destination: "somewhere", Checked: false},
+				{Text: "another memoarchive", Destination: "anywhere", Checked: true},
+				{Text: "yet another memoarchive", Destination: "everywhere", Checked: false},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := &TipRepo{
+			repo := &MemoArchiveRepo{
 				config: tt.fields.config,
 			}
-			if got := repo.TipsFromIndex(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TipRepo.TipsFromIndex() = %v, want %v", got, tt.want)
+			if got := repo.MemoArchivesFromIndex(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MemoArchiveRepo.MemoArchivesFromIndex() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTipRepo_TipsFromIndexChecked(t *testing.T) {
+func TestMemoArchiveRepo_MemoArchivesFromIndexChecked(t *testing.T) {
 	type fields struct {
 		config *config.TomlConfig
 		gmw    *markdown.GoldmarkWrapper
@@ -60,26 +60,26 @@ func TestTipRepo_TipsFromIndexChecked(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   []*models.Tip
+		want   []*models.MemoArchive
 	}{
 		{
-			name: "Test TipsFromIndexChecked",
+			name: "Test MemoArchivesFromIndexChecked",
 			fields: fields{
 				config: testConfig,
 				gmw:    markdown.NewGoldmarkWrapper(),
 			},
-			want: []*models.Tip{
-				{Text: "another tip", Destination: "anywhere", Checked: true},
+			want: []*models.MemoArchive{
+				{Text: "another memoarchive", Destination: "anywhere", Checked: true},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := &TipRepo{
+			repo := &MemoArchiveRepo{
 				config: tt.fields.config,
 			}
-			if got := repo.TipsFromIndexChecked(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TipRepo.TipsFromIndexChecked() = %v, want %v", got, tt.want)
+			if got := repo.MemoArchivesFromIndexChecked(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MemoArchiveRepo.MemoArchivesFromIndexChecked() = %v, want %v", got, tt.want)
 			}
 		})
 	}

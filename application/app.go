@@ -45,10 +45,10 @@ func (app *App) Initialize() {
 	// dailymemo
 	initializeDir(app.Config.DailymemoDir())
 	initializeFile(app.Config.DailymemoTemplateFile(), usecases.TemplateDailymemo)
-	// tips
-	initializeDir(app.Config.TipsDir())
-	initializeFile(app.Config.TipsTemplateFile(), usecases.TemplateTips)
-	initializeFile(app.Config.TipsIndexFile(), usecases.TemplateTipsIndex)
+	// memoarchives
+	initializeDir(app.Config.MemoArchivesDir())
+	initializeFile(app.Config.MemoArchivesTemplateFile(), usecases.TemplateMemoArchives)
+	initializeFile(app.Config.MemoArchivesIndexFile(), usecases.TemplateMemoArchivesIndex)
 }
 
 func initializeFile(filepath string, template models.Template) {

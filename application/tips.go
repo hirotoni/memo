@@ -10,58 +10,60 @@ import (
 	"github.com/hirotoni/memo/usecases"
 )
 
-// SaveTips generates tips index file
-func (app *App) SaveTips() {
-	app.saveTips(false)
+// SaveMemoArchives generates memo archives index file
+func (app *App) SaveMemoArchives() {
+	app.saveMemoArchives(false)
 }
 
-func (app *App) saveTips(pickTip bool) *models.Tip {
-	checkedTips := app.repos.TipRepo.TipsFromIndexChecked()           // TODO handle error
-	allTips := app.repos.TipNodeRepo.TipNodesFromTipsDir(checkedTips) // TODO handle error
-	if len(allTips) == 0 {
+func (app *App) saveMemoArchives(pickMemoArchive bool) *models.MemoArchive {
+	checkedMemoArchives := app.repos.MemoArchiveRepo.MemoArchivesFromIndexChecked()                           // TODO handle error
+	allMemoArchives := app.repos.MemoArchiveNodeRepo.MemoArchiveNodesFromMemoArchivesDir(checkedMemoArchives) // TODO handle error
+	if len(allMemoArchives) == 0 {
 		return nil
 	}
 
-	var picked *models.Tip
-	if pickTip {
-		picked = pickRandomTip(allTips)
+	var picked *models.MemoArchive
+	if pickMemoArchive {
+		picked = pickRandomMemoArchive(allMemoArchives)
 	}
 
 	var buf = &bytes.Buffer{}
-	usecases.PrintTipNodeHeadingStyle(buf, allTips)
+	usecases.PrintMemoArchiveNodeHeadingStyle(buf, allMemoArchives)
 
-	// write tips to index
-	f, err := os.Create(app.Config.TipsIndexFile())
+	// write memo archives to index
+	f, err := os.Create(app.Config.MemoArchivesIndexFile())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	tipsb := []byte(usecases.GenerateTemplateString(usecases.TemplateTipsIndex))
-	tipsb = app.gmw.InsertTextAfter(tipsb, usecases.HEADING_NAME_TIPSINDEX, buf.String())
-	f.Write(tipsb)
+	masb := []byte(usecases.GenerateTemplateString(usecases.TemplateMemoArchivesIndex))
+	masb = app.gmw.InsertTextAfter(masb, usecases.HEADING_NAME_MEMOARCHIVES_INDEX, buf.String())
+	f.Write(masb)
 
 	return picked
 }
 
-func pickRandomTip(allTips []*models.TipNode) *models.Tip {
-	notShown := filter(allTips, func(tn *models.TipNode) bool { return tn.Kind == models.TIPNODEKIND_TIP && !tn.Tip.Checked })
+func pickRandomMemoArchive(allMemoArchives []*models.MemoArchiveNode) *models.MemoArchive {
+	notShown := filter(allMemoArchives, func(tn *models.MemoArchiveNode) bool {
+		return tn.Kind == models.MEMOARCHIVENODEKIND_MEMO && !tn.MemoArchive.Checked
+	})
 
 	if len(notShown) == 0 {
-		// reset all tips
-		for _, v := range allTips {
-			v.Tip.Checked = false
+		// reset all memo archives
+		for _, v := range allMemoArchives {
+			v.MemoArchive.Checked = false
 		}
-		notShown = allTips
+		notShown = allMemoArchives
 	}
 
 	picked, _ := randomPick(notShown)
 
-	for _, v := range allTips {
-		if v.Tip.Destination == picked.Tip.Destination {
-			v.Tip.Checked = true
+	for _, v := range allMemoArchives {
+		if v.MemoArchive.Destination == picked.MemoArchive.Destination {
+			v.MemoArchive.Checked = true
 		}
 	}
-	return &picked.Tip
+	return &picked.MemoArchive
 }
 
 func filter[T any](ts []T, test func(T) bool) (ret []T) {

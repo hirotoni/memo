@@ -11,15 +11,15 @@ import (
 )
 
 const (
-	FOLDER_NAME_CONFIG    = ".config/memoapp/"
-	FOLDER_NAME_DAILYMEMO = "dailymemo/"
-	FOLDER_NAME_TIPS      = "tips"
+	FOLDER_NAME_CONFIG       = ".config/memoapp/"
+	FOLDER_NAME_DAILYMEMO    = "dailymemo/"
+	FOLDER_NAME_MEMOARCHIVES = "memoarchives/"
 
-	FILE_NAME_CONFIG             = "config.toml"
-	FILE_NAME_DAILYMEMO_TEMPLATE = "template.md"
-	FILE_NAME_TIPS_TEMPLATE      = "template.md"
-	FILE_NAME_TIPS_INDEX         = "index.md"
-	FILE_NAME_WEEKLY_REPORT      = "weekly_report.md"
+	FILE_NAME_CONFIG                = "config.toml"
+	FILE_NAME_DAILYMEMO_TEMPLATE    = "template.md"
+	FILE_NAME_MEMOARCHIVES_TEMPLATE = "template.md"
+	FILE_NAME_MEMOARCHIVES_INDEX    = "index.md"
+	FILE_NAME_WEEKLY_REPORT         = "weekly_report.md"
 )
 
 type TomlConfig struct {
@@ -110,12 +110,12 @@ func (tc *TomlConfig) DailymemoTemplateFile() string {
 func (tc *TomlConfig) WeeklyReportFile() string {
 	return filepath.Join(tc.BaseDir, FOLDER_NAME_DAILYMEMO, FILE_NAME_WEEKLY_REPORT) // {basedir}/dailymemo/weekly_report.md
 }
-func (tc *TomlConfig) TipsDir() string {
-	return filepath.Join(tc.BaseDir, FOLDER_NAME_TIPS) // {basedir}/tips
+func (tc *TomlConfig) MemoArchivesDir() string {
+	return filepath.Join(tc.BaseDir, FOLDER_NAME_MEMOARCHIVES) // {basedir}/memoarchives
 }
-func (tc *TomlConfig) TipsTemplateFile() string {
-	return filepath.Join(tc.BaseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_TEMPLATE) // {basedir}/tips/template.md
+func (tc *TomlConfig) MemoArchivesTemplateFile() string {
+	return filepath.Join(tc.BaseDir, FOLDER_NAME_MEMOARCHIVES, FILE_NAME_MEMOARCHIVES_TEMPLATE) // {basedir}/memoarchives/template.md
 }
-func (tc *TomlConfig) TipsIndexFile() string {
-	return filepath.Join(tc.BaseDir, FOLDER_NAME_TIPS, FILE_NAME_TIPS_INDEX) // {basedir}/tips/index.md
+func (tc *TomlConfig) MemoArchivesIndexFile() string {
+	return filepath.Join(tc.BaseDir, FOLDER_NAME_MEMOARCHIVES, FILE_NAME_MEMOARCHIVES_INDEX) // {basedir}/memoarchives/index.md
 }

@@ -73,11 +73,11 @@ func main() {
 				},
 			},
 			{
-				Name:  "tips",
-				Usage: "generate tips index",
+				Name:  "memoarchives",
+				Usage: "generate memo archive's index",
 				Action: func(c *cli.Context) error {
-					app.SaveTips()
-					app.OpenEditor(app.Config.TipsIndexFile())
+					app.SaveMemoArchives()
+					app.OpenEditor(app.Config.MemoArchivesIndexFile())
 					return nil
 				},
 			},

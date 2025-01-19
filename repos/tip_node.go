@@ -14,24 +14,24 @@ import (
 	"github.com/yuin/goldmark/ast"
 )
 
-type TipNodeRepo struct {
+type MemoArchiveNodeRepo struct {
 	config *config.TomlConfig
 }
 
-func NewTipNodeRepo(config *config.TomlConfig) *TipNodeRepo {
-	return &TipNodeRepo{
+func NewMemoArchiveNodeRepo(config *config.TomlConfig) *MemoArchiveNodeRepo {
+	return &MemoArchiveNodeRepo{
 		config: config,
 	}
 }
 
-func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []*models.Tip) []*models.TipNode {
-	var tns []*models.TipNode
+func (repo *MemoArchiveNodeRepo) MemoArchiveNodesFromMemoArchivesDir(shown []*models.MemoArchive) []*models.MemoArchiveNode {
+	var tns []*models.MemoArchiveNode
 
-	err := filepath.WalkDir(repo.config.TipsDir(), func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(repo.config.MemoArchivesDir(), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if path == repo.config.TipsTemplateFile() || path == repo.config.TipsIndexFile() {
+		if path == repo.config.MemoArchivesTemplateFile() || path == repo.config.MemoArchivesIndexFile() {
 			return nil
 		}
 
@@ -43,12 +43,12 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []*models.Tip) []*models.TipN
 		depth := len(pathlist) - 3 // TODO avoid using magic number
 
 		if d.IsDir() {
-			if path == repo.config.TipsDir() {
+			if path == repo.config.MemoArchivesDir() {
 				return nil
 			}
 
-			tmp := models.TipNode{
-				Kind:  models.TIPNODEKIND_DIR,
+			tmp := models.MemoArchiveNode{
+				Kind:  models.MEMOARCHIVENODEKIND_DIR,
 				Text:  d.Name(),
 				Depth: depth,
 			}
@@ -61,16 +61,16 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []*models.Tip) []*models.TipN
 					log.Fatal(err)
 				}
 
-				h1, h2s := repo.getTipsHeadings(b)
+				h1, h2s := repo.getMemoArchivesHeadings(b)
 				if h1 == nil || h2s == nil {
 					return nil
 				}
 
-				tmp := models.TipNode{
-					Kind:  models.TIPNODEKIND_TITLE,
+				tmp := models.MemoArchiveNode{
+					Kind:  models.MEMOARCHIVENODEKIND_TITLE,
 					Text:  string(h1.Text(b)),
 					Depth: depth,
-					Tip: models.Tip{
+					MemoArchive: models.MemoArchive{
 						Text:        string(h1.Text(b)),
 						Destination: relpath,
 					},
@@ -79,15 +79,15 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []*models.Tip) []*models.TipN
 
 				for _, h2 := range h2s {
 					destination := relpath + "#" + markdown.Text2tag(string(h2.Text(b)))
-					checked := slices.ContainsFunc(shown, func(t *models.Tip) bool {
+					checked := slices.ContainsFunc(shown, func(t *models.MemoArchive) bool {
 						return t.Destination == destination
 					})
 
-					tmp := models.TipNode{
-						Kind:  models.TIPNODEKIND_TIP,
+					tmp := models.MemoArchiveNode{
+						Kind:  models.MEMOARCHIVENODEKIND_MEMO,
 						Text:  string(h2.Text(b)),
 						Depth: depth + 1,
-						Tip: models.Tip{
+						MemoArchive: models.MemoArchive{
 							Text:        string(h2.Text(b)),
 							Destination: destination,
 							Checked:     checked,
@@ -106,7 +106,7 @@ func (repo *TipNodeRepo) TipNodesFromTipsDir(shown []*models.Tip) []*models.TipN
 
 	return tns
 }
-func (repo *TipNodeRepo) getTipsHeadings(b []byte) (ast.Node, []ast.Node) {
+func (repo *MemoArchiveNodeRepo) getMemoArchivesHeadings(b []byte) (ast.Node, []ast.Node) {
 	_, headings := repo.config.Gmw.GetHeadingNodesByLevel(b, 1)
 	if len(headings) == 0 {
 		return nil, nil

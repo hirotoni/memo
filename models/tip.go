@@ -1,6 +1,6 @@
 package models
 
-type Tip struct {
+type MemoArchive struct {
 	Text        string
 	Destination string
 	Checked     bool
