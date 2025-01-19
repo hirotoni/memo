@@ -36,17 +36,17 @@ func (app *App) GenerateMemo(date string, truncate bool) string {
 
 // generateMemo generates memo file
 func (app *App) generateMemo(date string) []byte {
-	b, err := os.ReadFile(app.Config.DailymemoTemplateFile())
+	t, err := app.repos.DailymemoRepo.Template()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	b = app.gmw.InsertTextAfter(b, components.HEADING_NAME_TITLE, date)
-	b = app.inheritHeading(b, components.HEADING_NAME_TODOS)
-	b = app.inheritHeading(b, components.HEADING_NAME_WANTTODOS)
-	b = app.appendMemoArchive(b)
+	t.Content = app.gmw.InsertTextAfter(t.Content, components.HEADING_NAME_TITLE, date)
+	t.Content = app.inheritHeading(t.Content, components.HEADING_NAME_TODOS)
+	t.Content = app.inheritHeading(t.Content, components.HEADING_NAME_WANTTODOS)
+	t.Content = app.appendMemoArchive(t.Content)
 
-	return b
+	return t.Content
 }
 
 // inheritHeading inherits information of the specified heading from previous day's memo

@@ -7,7 +7,7 @@ import (
 type Dailymemo struct {
 	Filepath string
 	BaseName string
-	Date     time.Time
+	Date     *time.Time
 	Content  []byte
 }
 

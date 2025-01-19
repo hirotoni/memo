@@ -41,7 +41,7 @@ func (repo *DailymemoRepo) Entry(fpath string) (*models.Dailymemo, error) {
 	dm := &models.Dailymemo{
 		Filepath: fpath,
 		BaseName: basename,
-		Date:     date,
+		Date:     &date,
 		Content:  b,
 	}
 	return dm, nil
@@ -84,6 +84,20 @@ func (repo *DailymemoRepo) FindByDate(date string) (*models.Dailymemo, error) {
 	dm, err := repo.Entry(filepath)
 	if err != nil {
 		return nil, err
+	}
+	return dm, nil
+}
+
+func (repo *DailymemoRepo) Template() (*models.Dailymemo, error) {
+	b, err := os.ReadFile(repo.config.DailymemoTemplateFile())
+	if err != nil {
+		return nil, err
+	}
+	dm := &models.Dailymemo{
+		Filepath: repo.config.DailymemoTemplateFile(),
+		BaseName: filepath.Base(repo.config.DailymemoTemplateFile()),
+		Date:     nil,
+		Content:  b,
 	}
 	return dm, nil
 }
