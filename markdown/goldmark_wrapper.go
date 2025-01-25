@@ -48,6 +48,16 @@ func (gmw *GoldmarkWrapper) Render(writer io.Writer, input []byte, doc ast.Node)
 	return nil
 }
 
+func (gmw *GoldmarkWrapper) RenderSlice(writer io.Writer, input []byte, nodes []ast.Node) error {
+	for _, n := range nodes {
+		err := gmw.Render(writer, input, n)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (gmw *GoldmarkWrapper) GetHeadingNodesByLevel(source []byte, level int) (ast.Node, []ast.Node) {
 	doc := gmw.Parse(source)
 	var foundNodes []ast.Node
