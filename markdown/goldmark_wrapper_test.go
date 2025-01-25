@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hirotoni/memo/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -63,7 +62,7 @@ func TestGoldmarkWrapper_FindHeadingAndGetHangingNodes(t *testing.T) {
 			assert.NoError(err)
 
 			gmw := NewGoldmarkWrapper()
-			h := models.NewHeading(2, "ordered list")
+			h := NewHeading(2, "ordered list")
 			_, hangingNodes := gmw.FindHeadingAndGetHangingNodes(f, h)
 
 			assert.NotEmpty(hangingNodes)

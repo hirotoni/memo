@@ -1,18 +1,11 @@
 package models
 
+import "github.com/hirotoni/memo/markdown"
+
 type Template struct {
-	Headings []Heading
+	Headings []markdown.Heading
 }
 
-func NewTemplate(headings []Heading) Template {
+func NewTemplate(headings []markdown.Heading) Template {
 	return Template{Headings: headings}
-}
-
-type Heading struct {
-	Level int
-	Text  string
-}
-
-func NewHeading(level int, text string) Heading {
-	return Heading{Level: level, Text: text}
 }

@@ -38,6 +38,7 @@ func NewApp() App {
 
 func (app *App) WithCustomConfig(conf configs.TomlConfig) {
 	app.Config = &conf
+	app.repos = repos.NewRepos(&conf)
 }
 
 // Initialize initializes dirs and files

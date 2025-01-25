@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	myrenderer "github.com/hirotoni/memo/markdown/renderer"
-	"github.com/hirotoni/memo/models"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -16,6 +15,15 @@ import (
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
 )
+
+type Heading struct {
+	Level int
+	Text  string
+}
+
+func NewHeading(level int, text string) Heading {
+	return Heading{Level: level, Text: text}
+}
 
 type GoldmarkWrapper struct {
 	Goldmark goldmark.Markdown
@@ -72,7 +80,7 @@ func (gmw *GoldmarkWrapper) GetHeadingNodesByLevel(source []byte, level int) (as
 	return doc, foundNodes
 }
 
-func (gmw *GoldmarkWrapper) GetHeadingNode(source []byte, heading models.Heading) (ast.Node, ast.Node) {
+func (gmw *GoldmarkWrapper) GetHeadingNode(source []byte, heading Heading) (ast.Node, ast.Node) {
 	doc := gmw.Parse(source)
 
 	var foundNode ast.Node
@@ -90,7 +98,7 @@ func (gmw *GoldmarkWrapper) GetHeadingNode(source []byte, heading models.Heading
 }
 
 // FindHeadingAndGetHangingNodes finds a heading that matches given text and level, then returns the found heading and hanging nodes of the heading
-func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(source []byte, heading models.Heading) (ast.Node, []ast.Node) {
+func (gmw *GoldmarkWrapper) FindHeadingAndGetHangingNodes(source []byte, heading Heading) (ast.Node, []ast.Node) {
 	doc := gmw.Parse(source)
 
 	const (
@@ -134,7 +142,7 @@ loop:
 }
 
 // InsertNodesAfter inserts nodes to document at target position, and returns updated byte array of document as the result of the insert operation
-func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading models.Heading, sourceNodesToInsert []byte, nodesToInsert []ast.Node) []byte {
+func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading Heading, sourceNodesToInsert []byte, nodesToInsert []ast.Node) []byte {
 	// insert from tail nodes
 	slices.Reverse(nodesToInsert)
 
@@ -163,7 +171,7 @@ func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading mo
 	return sourceSelf
 }
 
-func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading models.Heading, text string) []byte {
+func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading Heading, text string) []byte {
 	_, targetHeadingNode := gmw.GetHeadingNode(sourceSelf, targetHeading)
 
 	// for compaitibility

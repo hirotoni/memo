@@ -8,7 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hirotoni/memo/components"
 	"github.com/hirotoni/memo/configs"
+	"github.com/hirotoni/memo/markdown"
+
 	"github.com/hirotoni/memo/models"
 )
 
@@ -100,4 +103,34 @@ func (repo *DailymemoRepo) Template() (*models.Dailymemo, error) {
 		Content:  b,
 	}
 	return dm, nil
+}
+
+func (repo *DailymemoRepo) MemosFromDailymemo(dm *models.Dailymemo) []*models.Memo {
+	// find memo block
+	gmw := repo.config.Gmw
+	_, b := gmw.FindHeadingAndGetHangingNodes(dm.Content, components.HEADING_NAME_MEMOS)
+	sb := new(strings.Builder)
+	gmw.RenderSlice(sb, dm.Content, b)
+
+	memoBlock := []byte(sb.String())
+
+	// extract titles
+	_, memoHeadings := gmw.GetHeadingNodesByLevel(memoBlock, 3)
+	var titles []string
+	for _, heading := range memoHeadings {
+		titles = append(titles, string(heading.Text(memoBlock)))
+	}
+
+	// extract each memo block
+	var memos []*models.Memo
+	for _, title := range titles {
+		hhh := markdown.NewHeading(components.HEADING_NAME_MEMOS.Level+1, title)
+		_, b := gmw.FindHeadingAndGetHangingNodes(memoBlock, hhh)
+		sb := new(strings.Builder)
+		gmw.RenderSlice(sb, memoBlock, b)
+		mm := models.NewMemo(dm.Filepath, title, sb.String())
+
+		memos = append(memos, mm)
+	}
+	return memos
 }

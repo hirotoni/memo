@@ -9,34 +9,34 @@ import (
 
 var (
 	// daily memo
-	HEADING_NAME_TITLE             = models.NewHeading(1, "daily memo")
-	HEADING_NAME_TODAYSMEMOARCHIVE = models.NewHeading(2, "today's memo archive")
-	HEADING_NAME_TODOS             = models.NewHeading(2, "todos")
-	HEADING_NAME_WANTTODOS         = models.NewHeading(2, "wanttodos")
-	HEADING_NAME_MEMOS             = models.NewHeading(2, "memos")
+	HEADING_NAME_TITLE             = markdown.NewHeading(1, "daily memo")
+	HEADING_NAME_TODAYSMEMOARCHIVE = markdown.NewHeading(2, "today's memo archive")
+	HEADING_NAME_TODOS             = markdown.NewHeading(2, "todos")
+	HEADING_NAME_WANTTODOS         = markdown.NewHeading(2, "wanttodos")
+	HEADING_NAME_MEMOS             = markdown.NewHeading(2, "memos")
 	// weekly report
-	HEADING_NAME_WEEKLYREPORT = models.NewHeading(1, "Weekly Report")
+	HEADING_NAME_WEEKLYREPORT = markdown.NewHeading(1, "Weekly Report")
 	// memo archives index
-	HEADING_NAME_MEMOARCHIVES_INDEX = models.NewHeading(1, "Memo Archives Index")
+	HEADING_NAME_MEMOARCHIVES_INDEX = markdown.NewHeading(1, "Memo Archives Index")
 )
 
 var (
-	dailymemoHeadings = []models.Heading{
+	dailymemoHeadings = []markdown.Heading{
 		HEADING_NAME_TITLE,
 		HEADING_NAME_TODAYSMEMOARCHIVE,
 		HEADING_NAME_TODOS,
 		HEADING_NAME_WANTTODOS,
 		HEADING_NAME_MEMOS,
 	}
-	weeklyReportHeadings = []models.Heading{
+	weeklyReportHeadings = []markdown.Heading{
 		HEADING_NAME_WEEKLYREPORT,
 	}
-	memoArchivesHeadings = []models.Heading{
-		models.NewHeading(1, "sushi (<- memo category)"),
-		models.NewHeading(2, "how to eat sushi (<- memo title in heading level 2)"),
-		models.NewHeading(2, "how to roll sushi (<- another memo)"),
+	memoArchivesHeadings = []markdown.Heading{
+		markdown.NewHeading(1, "sushi (<- memo category)"),
+		markdown.NewHeading(2, "how to eat sushi (<- memo title in heading level 2)"),
+		markdown.NewHeading(2, "how to roll sushi (<- another memo)"),
 	}
-	memoArchivesIndexHeadings = []models.Heading{
+	memoArchivesIndexHeadings = []markdown.Heading{
 		HEADING_NAME_MEMOARCHIVES_INDEX,
 	}
 )

@@ -10,7 +10,6 @@ import (
 
 	"github.com/hirotoni/memo/components"
 	"github.com/hirotoni/memo/markdown"
-	"github.com/hirotoni/memo/models"
 )
 
 // GenerateMemo generates memo file
@@ -50,7 +49,7 @@ func (app *App) generateMemo(date string) []byte {
 }
 
 // inheritHeading inherits information of the specified heading from previous day's memo
-func (app *App) inheritHeading(tb []byte, heading models.Heading) []byte {
+func (app *App) inheritHeading(tb []byte, heading markdown.Heading) []byte {
 	// previous days
 	today := time.Now()
 	for i := range make([]int, app.Config.DaysToSeek) {
