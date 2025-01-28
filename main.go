@@ -99,6 +99,14 @@ func main() {
 					},
 				},
 			},
+			{
+				Name:  "links",
+				Usage: "search links",
+				Action: func(c *cli.Context) error {
+					app.Links()
+					return nil
+				},
+			},
 		},
 	}
 

@@ -115,10 +115,11 @@ func (repo *DailymemoRepo) MemosFromDailymemo(dm *models.Dailymemo) []*models.Me
 	memoBlock := []byte(sb.String())
 
 	// extract titles
-	_, memoHeadings := gmw.GetHeadingNodesByLevel(memoBlock, 3)
+	_, memoHeadings := gmw.GetHeadingNodesByLevel(memoBlock, components.HEADING_NAME_MEMOS.Level+1)
 	var titles []string
 	for _, heading := range memoHeadings {
-		titles = append(titles, string(heading.Text(memoBlock)))
+		text := heading.Text(memoBlock)
+		titles = append(titles, strings.TrimSpace(string(text)))
 	}
 
 	// extract each memo block
@@ -128,9 +129,15 @@ func (repo *DailymemoRepo) MemosFromDailymemo(dm *models.Dailymemo) []*models.Me
 		_, b := gmw.FindHeadingAndGetHangingNodes(memoBlock, hhh)
 		sb := new(strings.Builder)
 		gmw.RenderSlice(sb, memoBlock, b)
-		mm := models.NewMemo(dm.Filepath, title, sb.String())
+		relpath, err := filepath.Rel(repo.config.BaseDir, dm.Filepath)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		memos = append(memos, mm)
+		if sb.Len() > 0 {
+			mm := models.NewMemo(relpath, title, sb.String())
+			memos = append(memos, mm)
+		}
 	}
 	return memos
 }

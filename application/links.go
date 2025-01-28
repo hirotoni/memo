@@ -3,8 +3,8 @@ package application
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/hirotoni/memo/models"
 )
@@ -14,7 +14,7 @@ func (app *App) Links() {
 	var memos []*models.Memo
 	dms, err := app.repos.DailymemoRepo.Entries()
 	if err != nil {
-		log.Fatal("")
+		log.Fatal("error")
 	}
 	for _, dm := range dms {
 		mm := app.repos.DailymemoRepo.MemosFromDailymemo(dm)
@@ -23,17 +23,12 @@ func (app *App) Links() {
 
 	// search links
 	if err != nil {
-		log.Fatal("")
+		log.Fatal("error")
 	}
 	var temp map[string][]string = make(map[string][]string)
 	for _, m := range memos {
 		for _, v := range memos {
-			r, err := regexp.Compile(v.SearchKey())
-			if err != nil {
-				log.Fatal("")
-				continue
-			}
-			if r.Match([]byte(m.Content)) {
+			if strings.Contains(m.Content, v.SearchKey()) {
 				key := v.Link()
 				value := m.Link()
 				temp[key] = append(temp[key], value)

@@ -26,6 +26,10 @@ config: ## Edit config file
 config-show: ## Show config file
 	go run . config show
 
+.PHONY: links
+links: ## Generate links index
+	go run . links
+
 .PHONY: test
 test: ## Run tests
 	go test ./... -cover
