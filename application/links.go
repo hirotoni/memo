@@ -3,7 +3,6 @@ package application
 import (
 	"fmt"
 	"log"
-	"slices"
 	"strings"
 
 	"github.com/hirotoni/memo/models"
@@ -29,20 +28,21 @@ func (app *App) Links() {
 				key := v.Link()
 				value := m.Link()
 				links[key] = append(links[key], value)
+
+				fmt.Println(m.Link(), " -> ", v.Link())
+
+				// b, err := os.ReadFile(filepath.Join(app.Config.BaseDir, v.Filepath))
+				// if err != nil {
+				// 	log.Fatal(err)
+				// }
+
+				// h := markdown.Heading{
+				// 	Level: 3,
+				// 	Text:  v.Title,
+				// }
+				// inserted := app.Config.Gmw.InsertTextAfter(b, h, fmt.Sprintf("linked mentions\n\n- [%s](%s)", m.Link(), m.Link()))
+				// os.WriteFile(filepath.Join(app.Config.BaseDir, v.Filepath), inserted, 0644)
 			}
-		}
-	}
-
-	var keys []string
-	for k := range links {
-		keys = append(keys, k)
-	}
-
-	slices.Sort(keys)
-
-	for _, k := range keys {
-		for _, v := range links[k] {
-			fmt.Println(v, " -> ", k)
 		}
 	}
 }
