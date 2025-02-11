@@ -141,8 +141,8 @@ loop:
 	return foundHeading, hangingNodes
 }
 
-// InsertNodesAfter inserts nodes to document at target position, and returns updated byte array of document as the result of the insert operation
-func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading Heading, sourceNodesToInsert []byte, nodesToInsert []ast.Node) []byte {
+// InsertNodesAtHeadingStart inserts nodes to document at target position, and returns updated byte array of document as the result of the insert operation
+func (gmw *GoldmarkWrapper) InsertNodesAtHeadingStart(sourceSelf []byte, targetHeading Heading, sourceNodesToInsert []byte, nodesToInsert []ast.Node) []byte {
 	// insert from tail nodes
 	slices.Reverse(nodesToInsert)
 

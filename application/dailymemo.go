@@ -66,7 +66,7 @@ func (app *App) inheritHeading(tb []byte, heading markdown.Heading) []byte {
 		}
 
 		_, nodesToInsert := app.gmw.FindHeadingAndGetHangingNodes(md.Content, heading)
-		tb = app.gmw.InsertNodesAfter(tb, heading, md.Content, nodesToInsert)
+		tb = app.gmw.InsertNodesAtHeadingStart(tb, heading, md.Content, nodesToInsert)
 		break
 	}
 
