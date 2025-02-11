@@ -190,3 +190,27 @@ func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading Hea
 
 	return sourceSelf
 }
+
+func (gmw *GoldmarkWrapper) InsertTextAfterHeadingBlock(sourceSelf []byte, targetHeading Heading, text string) []byte {
+	foundHeading, children := gmw.FindHeadingAndGetHangingNodes(sourceSelf, targetHeading)
+	if foundHeading == nil {
+		// TODO return info that target heading is not found
+		return sourceSelf
+	}
+
+	// determine the last position of the found children
+	var last int
+	if len(children) > 0 {
+		last = children[len(children)-1].Lines().At(0).Stop
+	} else {
+		last = foundHeading.Lines().At(0).Stop
+	}
+
+	// append text after the last position
+	buf := []byte{}
+	buf = append(buf, sourceSelf[:last]...)
+	buf = append(buf, []byte("\n\n"+text)...)
+	sourceSelf = buf
+
+	return sourceSelf
+}
