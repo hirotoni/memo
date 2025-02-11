@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v2 v2.27.4
-	github.com/yuin/goldmark v1.7.4
+	github.com/yuin/goldmark v1.7.8
 )
 
 require (
