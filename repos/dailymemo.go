@@ -118,7 +118,7 @@ func (repo *DailymemoRepo) MemosFromDailymemo(dm *models.Dailymemo) []*models.Me
 	_, memoHeadings := gmw.GetHeadingNodesByLevel(memoBlock, components.HEADING_NAME_MEMOS.Level+1)
 	var titles []string
 	for _, heading := range memoHeadings {
-		text := heading.Text(memoBlock)
+		text := heading.Lines().Value(memoBlock)
 		titles = append(titles, strings.TrimSpace(string(text)))
 	}
 
