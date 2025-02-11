@@ -37,7 +37,7 @@ func (app *App) saveMemoArchives(pickMemoArchive bool) *models.MemoArchive {
 	}
 	defer f.Close()
 	masb := []byte(components.GenerateTemplateString(components.TemplateMemoArchivesIndex))
-	masb = app.gmw.InsertTextAfter(masb, components.HEADING_NAME_MEMOARCHIVES_INDEX, buf.String())
+	masb = app.gmw.InsertTextAtHeadingStart(masb, components.HEADING_NAME_MEMOARCHIVES_INDEX, buf.String())
 	f.Write(masb)
 
 	return picked

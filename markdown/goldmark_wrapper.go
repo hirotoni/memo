@@ -171,7 +171,8 @@ func (gmw *GoldmarkWrapper) InsertNodesAfter(sourceSelf []byte, targetHeading He
 	return sourceSelf
 }
 
-func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading Heading, text string) []byte {
+// InsertTextAfter inserts text to document at target position, and returns updated byte array of document as the result of the insert operation
+func (gmw *GoldmarkWrapper) InsertTextAtHeadingStart(sourceSelf []byte, targetHeading Heading, text string) []byte {
 	_, targetHeadingNode := gmw.GetHeadingNode(sourceSelf, targetHeading)
 
 	// for compaitibility
@@ -191,7 +192,8 @@ func (gmw *GoldmarkWrapper) InsertTextAfter(sourceSelf []byte, targetHeading Hea
 	return sourceSelf
 }
 
-func (gmw *GoldmarkWrapper) InsertTextAfterHeadingBlock(sourceSelf []byte, targetHeading Heading, text string) []byte {
+// InsertTextAfter inserts text to document at target position, and returns updated byte array of document as the result of the insert operation
+func (gmw *GoldmarkWrapper) InsertTextAtHeadingEnd(sourceSelf []byte, targetHeading Heading, text string) []byte {
 	foundHeading, children := gmw.FindHeadingAndGetHangingNodes(sourceSelf, targetHeading)
 	if foundHeading == nil {
 		// TODO return info that target heading is not found

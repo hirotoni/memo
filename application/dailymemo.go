@@ -40,7 +40,7 @@ func (app *App) generateMemo(date string) []byte {
 		log.Fatal(err)
 	}
 
-	t.Content = app.gmw.InsertTextAfter(t.Content, components.HEADING_NAME_TITLE, date)
+	t.Content = app.gmw.InsertTextAtHeadingStart(t.Content, components.HEADING_NAME_TITLE, date)
 	t.Content = app.inheritHeading(t.Content, components.HEADING_NAME_TODOS)
 	t.Content = app.inheritHeading(t.Content, components.HEADING_NAME_WANTTODOS)
 	t.Content = app.appendMemoArchive(t.Content)
@@ -83,7 +83,7 @@ func (app *App) appendMemoArchive(tb []byte) []byte {
 			picked.Text,
 			picked.Destination,
 		))
-		tb = app.gmw.InsertTextAfter(tb, components.HEADING_NAME_TODAYSMEMOARCHIVE, chosenMemoArchive)
+		tb = app.gmw.InsertTextAtHeadingStart(tb, components.HEADING_NAME_TODAYSMEMOARCHIVE, chosenMemoArchive)
 	}
 
 	return tb
